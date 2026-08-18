@@ -858,7 +858,7 @@ text-decoration:underline;
               </select>
             </div>
             <label class="decl"><input type="checkbox" id="d1" /><span>El trabajo es original y fue escrito por quienes aparecen como autores.</span></label>
-            <label class="decl"><input type="checkbox" id="d2" /><span>No está publicado ni en revisión en otro medio.</span></label>
+            <label class="decl"><input type="checkbox" id="d2" /><span>No está publicado ni en revisión en otro medio (opcional).</span></label>
             <label class="decl"><input type="checkbox" id="d3" /><span>Acepto el proceso de dictaminación doble ciego y los ajustes editoriales que resulten.</span></label>
             <label class="decl"><input type="checkbox" id="d4" /><span>Autorizo la publicación del texto en la edición en PDF y en el sitio web de Vértices.</span></label>
           </fieldset>
@@ -2111,7 +2111,7 @@ function validarPaso(i) {
   }
   if (i === 3) {
     if (!val("usoIA")) return TR("Indica si usaste herramientas de inteligencia artificial.");
-    if (!["d1", "d2", "d3", "d4"].every((id) => document.getElementById(id).checked))
+    if (!["d1", "d3", "d4"].every((id) => document.getElementById(id).checked))
       return TR("Confirma las cuatro declaraciones para poder enviar.");
   }
   return null;
