@@ -32,8 +32,8 @@
   // en curvas largas y continuas, como un mapa de flujo dibujado a lápiz.
   const VELO = 0.02;       // velo crema por cuadro: casi nulo = estelas casi permanentes
   const OP_TINTA = 0.02;    // opacidad de los trazos finos (estipulado de fondo)
-  const OP_LIDER = 0.045;   // opacidad de los trazos líderes (curvas largas y visibles)
-  const OP_ACENTO = 0.05;   // opacidad de los trazos con color
+  const OP_LIDER = 0.035;   // opacidad de los trazos líderes (curvas largas y visibles)
+  const OP_ACENTO = 0.04;   // opacidad de los trazos con color
   const PROB_LIDER = 0.25;  // fracción de partículas líderes (barridos continuos)
   const PROB_ACENTO = 0.04; // fracción de partículas con destello de color
   const VIDA_MIN = 500, VIDA_MAX = 1300; // cuadros de vida: cada partícula traza una curva larga
