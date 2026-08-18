@@ -331,6 +331,22 @@
     display:block; margin-bottom:7px; font:500 11px var(--f-ui);
     letter-spacing:.14em; text-transform:uppercase; color:var(--gris);
   }
+.label-con-ayuda{
+display:flex;
+align-items:center;
+gap:8px;
+}
+.label-con-ayuda .link-detalles{
+font:500 10px var(--f-ui);
+letter-spacing:.04em;
+text-transform:none;
+color:var(--indigo-claro);
+text-decoration:none;
+margin-bottom:1px;
+}
+.label-con-ayuda .link-detalles:hover{
+text-decoration:underline;
+}
   input[type=text], input[type=email], select, textarea{
     width:100%; padding:12px 14px; color:var(--crema);
     font:400 14px var(--f-ui); background:rgba(45,35,46,.05);
@@ -791,7 +807,12 @@
             </div>
             <div class="fila2 campo">
              <div>
-  <label for="seccion">Sección sugerida *</label>
+ <label for="seccion" class="label-con-ayuda">
+<span>Sección sugerida *</span>
+<a href="lineamientos.html#secciones" class="link-detalles">
+  Consulta los detalles
+</a>
+</label>
   <select id="seccion" name="seccion">
     <option value="">Elige una sección</option>
   </select>
