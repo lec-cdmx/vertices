@@ -32,12 +32,14 @@
   // en curvas largas y continuas, como un mapa de flujo dibujado a lápiz.
   const VELO = 0.02;       // velo crema por cuadro: casi nulo = estelas casi permanentes
   const OP_TINTA = 0.02;    // opacidad de los trazos finos (estipulado de fondo)
-  const OP_LIDER = 0.035;   // opacidad de los trazos líderes (curvas largas y visibles)
-  const OP_ACENTO = 0.04;   // opacidad de los trazos con color
+  const OP_LIDER = 0.045;   // opacidad de los trazos líderes (curvas largas y visibles)
+  const OP_ACENTO = 0.05;   // opacidad de los trazos con color
   const PROB_LIDER = 0.25;  // fracción de partículas líderes (barridos continuos)
   const PROB_ACENTO = 0.04; // fracción de partículas con destello de color
   const VIDA_MIN = 500, VIDA_MAX = 1300; // cuadros de vida: cada partícula traza una curva larga
-
+  const MAX_CUADROS =900; // 15 segundos a 60 FPS
+  let cuadros = 0;
+   
   let W = 0, H = 0, dpr = 1, particulas = [], t = 0, raf = 0;
 
   function medir() {
@@ -108,12 +110,21 @@
 
   let ultimo = 0;
   function ciclo(ms) {
-    const dt = Math.min(0.05, (ms - ultimo) / 1000 || 0.016);
-    ultimo = ms;
-    t += dt;
-    paso(dt);
-    raf = requestAnimationFrame(ciclo);
+  const dt = Math.min(0.05, (ms - ultimo) / 1000 || 0.016);
+  ultimo = ms;
+
+  t += dt;
+  paso(dt);
+
+  cuadros++;
+
+  if (cuadros >= MAX_CUADROS) {
+    cancelAnimationFrame(raf);
+    return;
   }
+
+  raf = requestAnimationFrame(ciclo);
+}
 
   function arranca() {
     cancelAnimationFrame(raf);
