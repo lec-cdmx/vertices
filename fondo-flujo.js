@@ -30,7 +30,7 @@
   // parámetros de estética. El campo está CONGELADO (sin tiempo): las partículas
   // siguen líneas de corriente fijas y sus estelas casi permanentes se acumulan
   // en curvas largas y continuas, como un mapa de flujo dibujado a lápiz.
-  const VELO = 0.002;       // velo crema por cuadro: casi nulo = estelas casi permanentes
+  const VELO = 0.02;       // velo crema por cuadro: casi nulo = estelas casi permanentes
   const OP_TINTA = 0.02;    // opacidad de los trazos finos (estipulado de fondo)
   const OP_LIDER = 0.045;   // opacidad de los trazos líderes (curvas largas y visibles)
   const OP_ACENTO = 0.05;   // opacidad de los trazos con color
