@@ -126,10 +126,11 @@
   raf = requestAnimationFrame(ciclo);
 }
 
-  function arranca() {
-    cancelAnimationFrame(raf);
-    medir();
-    siembra();
+function arranca() {
+  cancelAnimationFrame(raf);
+  cuadros = 0;
+  medir();
+  siembra();
     if (quieto) {
       // acumula un mapa de flujo estático y se detiene
       for (let i = 0; i < 1100; i++) paso(0.033);
