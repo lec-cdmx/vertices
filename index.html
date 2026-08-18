@@ -331,17 +331,6 @@
     display:block; margin-bottom:7px; font:500 11px var(--f-ui);
     letter-spacing:.14em; text-transform:uppercase; color:var(--gris);
   }
-    .campo-cab{
-  display:flex; justify-content:space-between; align-items:baseline;
-  gap:12px; margin-bottom:7px; flex-wrap:wrap;
-}
-.campo-cab label{ margin-bottom:0; }
-.campo-cab a{
-  font-size:11px; letter-spacing:.04em; text-transform:none;
-  color:var(--indigo-claro); text-decoration:none; white-space:nowrap;
-}
-.campo-cab a:hover{ text-decoration:underline; }
-  }
   input[type=text], input[type=email], select, textarea{
     width:100%; padding:12px 14px; color:var(--crema);
     font:400 14px var(--f-ui); background:rgba(45,35,46,.05);
@@ -801,11 +790,8 @@
               </select>
             </div>
             <div class="fila2 campo">
-              <div>
-  <div class="campo-cab">
-    <label for="seccion">Sección sugerida *</label>
-    <a href="lineamientos.html#secciones" target="_blank" rel="noopener">Consulta los detalles de las secciones</a>
-  </div>
+             <div>
+  <label for="seccion">Sección sugerida *</label>
   <select id="seccion" name="seccion">
     <option value="">Elige una sección</option>
   </select>
