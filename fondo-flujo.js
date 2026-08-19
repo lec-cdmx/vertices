@@ -30,17 +30,21 @@
   // parámetros de estética. El campo está CONGELADO (sin tiempo): las partículas
   // siguen líneas de corriente fijas y sus estelas casi permanentes se acumulan
   // en curvas largas y continuas, como un mapa de flujo dibujado a lápiz.
-  const VELO = 0.02;       // velo crema por cuadro: casi nulo = estelas casi permanentes
-  const OP_TINTA = 0.02;    // opacidad de los trazos finos (estipulado de fondo)
-  const OP_LIDER = 0.045;   // opacidad de los trazos líderes (curvas largas y visibles)
-  const OP_ACENTO = 0.05;   // opacidad de los trazos con color
+  const VELO = 0.035;       // velo crema por cuadro: casi nulo = estelas casi permanentes
+  const OP_TINTA = 0.018;    // opacidad de los trazos finos (estipulado de fondo)
+  const OP_LIDER = 0.035;   // opacidad de los trazos líderes (curvas largas y visibles)
+  const OP_ACENTO = 0.045;   // opacidad de los trazos con color
   const PROB_LIDER = 0.25;  // fracción de partículas líderes (barridos continuos)
   const PROB_ACENTO = 0.04; // fracción de partículas con destello de color
   const VIDA_MIN = 500, VIDA_MAX = 1300; // cuadros de vida: cada partícula traza una curva larga
-  const MAX_CUADROS =600; // 15 segundos a 60 FPS
+    // presupuesto de cuadros dividido en dos fases
+  const CUADROS_DIBUJO = 420;        // ~7s a 60 FPS dibujando tinta nueva
+  const CUADROS_ENFRIAMIENTO = 150;  // ~2.5s a 60 FPS solo aclarando, sin tinta nueva
+  const MAX_CUADROS = CUADROS_DIBUJO + CUADROS_ENFRIAMIENTO;
   let cuadros = 0;
-   
+ 
   let W = 0, H = 0, dpr = 1, particulas = [], t = 0, raf = 0;
+
 
   function medir() {
     dpr = Math.min(devicePixelRatio || 1, 2);
@@ -82,12 +86,18 @@
     particulas.forEach((p) => { p.vida = (p.vida * Math.random()) | 0; });
   }
 
-  function paso(dt) {
-    // velo crema translúcido muy tenue: las estelas persisten largo tiempo
+    // dibujando=false → fase de enfriamiento: solo se aplica el velo, sin
+  // añadir tinta nueva, así el fondo converge hacia un estado más claro
+  // antes de congelarse.
+  function paso(dt, dibujando) {
+    // velo crema translúcido: hace que las estelas persistan pero no se
+    // acumulen sin control
     ctx.globalAlpha = 1;
     ctx.fillStyle = `rgba(${CREMA.join(",")},${VELO})`;
     ctx.fillRect(0, 0, W, H);
-
+ 
+    if (!dibujando) return;
+ 
     ctx.lineCap = "round";
     for (const p of particulas) {
       p.px = p.x; p.py = p.y;
@@ -107,39 +117,41 @@
       ctx.stroke();
     }
   }
-
+ 
   let ultimo = 0;
   function ciclo(ms) {
-  const dt = Math.min(0.05, (ms - ultimo) / 1000 || 0.016);
-  ultimo = ms;
-
-  t += dt;
-  paso(dt);
-
-  cuadros++;
-
-  if (cuadros >= MAX_CUADROS) {
-    cancelAnimationFrame(raf);
-    return;
+    const dt = Math.min(0.05, (ms - ultimo) / 1000 || 0.016);
+    ultimo = ms;
+ 
+    t += dt;
+    const dibujando = cuadros < CUADROS_DIBUJO;
+    paso(dt, dibujando);
+ 
+    cuadros++;
+ 
+    if (cuadros >= MAX_CUADROS) {
+      cancelAnimationFrame(raf);
+      return; // el último cuadro pintado queda como fondo estático
+    }
+ 
+    raf = requestAnimationFrame(ciclo);
   }
-
-  raf = requestAnimationFrame(ciclo);
-}
-
-function arranca() {
-  cancelAnimationFrame(raf);
-  cuadros = 0;
-  medir();
-  siembra();
+ 
+  function arranca() {
+    cancelAnimationFrame(raf);
+    cuadros = 0;
+    medir();
+    siembra();
     if (quieto) {
-      // acumula un mapa de flujo estático y se detiene
-      for (let i = 0; i < 1100; i++) paso(0.033);
+      // acumula un mapa de flujo estático y luego lo aclara antes de dejarlo fijo
+      for (let i = 0; i < CUADROS_DIBUJO; i++) paso(0.033, true);
+      for (let i = 0; i < CUADROS_ENFRIAMIENTO; i++) paso(0.033, false);
       return;
     }
     ultimo = performance.now();
     raf = requestAnimationFrame(ciclo);
   }
-
+ 
   let temporizador;
   addEventListener("resize", () => {
     clearTimeout(temporizador);
@@ -149,3 +161,4 @@ function arranca() {
     ? document.addEventListener("DOMContentLoaded", arranca)
     : arranca();
 })();
+
