@@ -1,0 +1,636 @@
+/* Vértices · versión de teléfono.
+
+   Todo lo de aquí vive detrás de html[data-disp="movil"], que pone
+   dispositivo.js antes de pintar. En escritorio este archivo no aplica una
+   sola regla, así que puede cargarse siempre sin riesgo.
+
+   La idea no es encoger la versión de escritorio: es otra pieza. El recorrido
+   cinematográfico (7 pantallas de scroll gobernando un motor de partículas)
+   se apaga por completo y en su lugar el teléfono recibe una portada corta,
+   los 27 temas como fichas que se tocan, las 8 secciones como acordeón —con
+   las descripciones que la versión de escritorio sólo enseña al pasar el
+   cursor, y que en teléfono se perdían— y una barra de pestañas fija abajo,
+   al alcance del pulgar.
+
+   Los tokens se redefinen con prefijo --m- porque las páginas del sitio no
+   comparten nombres de variable (la portada llama --crema a la tinta y
+   --negro al fondo; las satélites usan --tinta y --fondo). */
+
+html[data-disp="movil"]{
+  --m-fondo:#E7DECB;
+  --m-tinta:#2d232e;
+  --m-hueso:#433947;
+  --m-texto:#4d4252;
+  --m-gris:#776d80;
+  --m-indigo:#4d4dfa;
+  --m-indigo-claro:#5e5dc7;
+  --m-coral:#fd6343;
+  --m-ambar:#c07515;
+  --m-linea:rgba(45,35,46,.18);
+  --m-linea-fuerte:rgba(45,35,46,.42);
+  --m-vidrio:rgba(252,248,240,.62);
+  --m-hoja:rgba(252,248,240,.98);
+  --m-f-titulo:"Neue Montreal",Arial,"Helvetica Neue",sans-serif;
+  --m-f-ui:"Neue Montreal",Arial,"Helvetica Neue",sans-serif;
+  --m-f-sub:"Garet",Arial,"Helvetica Neue",sans-serif;
+  /* alto de la barra de pestañas + el borde inferior del iPhone */
+  --m-barra:calc(58px + env(safe-area-inset-bottom, 0px));
+  --m-lado:20px;
+  -webkit-text-size-adjust:100%;
+}
+
+html[data-disp="movil"] body{
+  overflow-x:hidden;
+  /* deja aire bajo la barra de pestañas para que no tape el final del pie */
+  padding-bottom:var(--m-barra);
+}
+
+/* ------------------------------------------------------------------ *
+   1 · apagar la versión de escritorio
+ * ------------------------------------------------------------------ */
+
+/* el lienzo de partículas, sus atmósferas, las cuatro capas fijas del
+   recorrido, el espaciador de 680vh y el riel de progreso no existen aquí.
+   El motor tampoco arranca (index.html lo condiciona a VERTICES_MOVIL), así
+   que esto sólo remata lo que quedó en el marcado. */
+html[data-disp="movil"] canvas#c,
+html[data-disp="movil"] .vineta,
+html[data-disp="movil"] #velo,
+html[data-disp="movil"] .capa,
+html[data-disp="movil"] #recorrido,
+html[data-disp="movil"] #fichaSeccion,
+html[data-disp="movil"] .riel{
+  display:none !important;
+}
+
+/* ------------------------------------------------------------------ *
+   2 · barra superior
+ * ------------------------------------------------------------------ */
+
+html[data-disp="movil"] .marco{
+  position:fixed; top:0; left:0; right:0; z-index:50;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:10px var(--m-lado) 10px;
+  padding-top:calc(10px + env(safe-area-inset-top, 0px));
+  background:rgba(231,222,203,.94);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  box-shadow:0 1px 0 rgba(45,35,46,.1);
+}
+html[data-disp="movil"] .marca{ gap:9px; }
+html[data-disp="movil"] .emblema{ width:23px; height:23px; }
+/* la marca escrita sí cabe: la versión de escritorio la esconde bajo 560px
+   porque compite con cuatro botones, y aquí sólo hay dos */
+html[data-disp="movil"] .marca span{
+  display:inline; font-size:12px; letter-spacing:.28em;
+}
+html[data-disp="movil"] .marco nav{ gap:8px; }
+
+/* en la barra sólo sobreviven el idioma y el menú; el resto de enlaces
+   vive en el panel del menú y en la barra de pestañas de abajo */
+html[data-disp="movil"] .marco nav > .enlace-bar,
+html[data-disp="movil"] .marco nav > .boton-bar,
+html[data-disp="movil"] .marco nav > .boton--lleno{ display:none; }
+html[data-disp="movil"] .menu-panel .solo-angosto{ display:block; }
+
+html[data-disp="movil"] .menu-boton{ width:40px; height:40px; }
+html[data-disp="movil"] .menu-panel{
+  position:fixed; top:calc(56px + env(safe-area-inset-top, 0px));
+  left:var(--m-lado); right:var(--m-lado); min-width:0;
+  max-height:calc(100vh - 90px - var(--m-barra));
+  max-height:calc(100dvh - 90px - var(--m-barra)); overflow-y:auto;
+  border-radius:18px; padding:8px;
+}
+html[data-disp="movil"] .menu-panel a.enlace{
+  padding:15px 16px; font-size:12.5px; border-radius:12px;
+}
+
+/* el selector de idioma que monta idiomas.js */
+html[data-disp="movil"] #selIdiomaWrap{ padding:9px 11px; }
+
+/* ------------------------------------------------------------------ *
+   3 · portada de teléfono
+ * ------------------------------------------------------------------ */
+
+html[data-disp="movil"] #movil{
+  position:relative; z-index:20;
+  display:block;
+}
+
+html[data-disp="movil"] .m-seccion{
+  padding:44px var(--m-lado) 8px;
+  scroll-margin-top:72px;
+}
+
+/* --- portada --- */
+html[data-disp="movil"] .m-portada{
+  position:relative;
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex; flex-direction:column; justify-content:center;
+  gap:26px;
+  padding:calc(84px + env(safe-area-inset-top, 0px)) var(--m-lado) 40px;
+  scroll-margin-top:0;
+}
+html[data-disp="movil"] .m-palabra{
+  margin:0;
+  font:500 clamp(52px, 20vw, 96px)/.98 var(--m-f-titulo);
+  letter-spacing:-.03em; color:var(--m-tinta);
+}
+html[data-disp="movil"] .m-lema{
+  margin:0; max-width:22ch;
+  font:400 16px/1.5 var(--m-f-sub); letter-spacing:.02em; color:var(--m-hueso);
+}
+html[data-disp="movil"] .m-regla{
+  width:56px; height:1px; background:var(--m-linea-fuerte);
+  transform-origin:left center;
+}
+/* la etiqueta institucional y el bloque de edición vienen del marcado de
+   escritorio (capa 1), sólo cambian de sitio y de escala */
+html[data-disp="movil"] .m-portada .hero-etq{
+  font-size:12.5px; line-height:1.6; color:var(--m-hueso);
+}
+html[data-disp="movil"] .m-portada .hero-etq span{ font-size:11.5px; }
+html[data-disp="movil"] .m-portada .hero-edicion{ text-align:left; }
+html[data-disp="movil"] .m-portada .hero-edicion p{ margin-bottom:14px; }
+html[data-disp="movil"] .m-acciones{
+  display:flex; flex-direction:column; gap:10px;
+}
+html[data-disp="movil"] .m-acciones .boton{
+  width:100%; text-align:center; padding:16px 20px; font-size:12px;
+}
+
+/* la aparición: el mismo orden de lectura, escalonado. Sin scroll de por
+   medio, así que corre una sola vez al cargar */
+@media (prefers-reduced-motion: no-preference){
+  html[data-disp="movil"] .m-portada > *{
+    opacity:0; animation:m-entra .75s cubic-bezier(.22,.7,.28,1) forwards;
+  }
+  html[data-disp="movil"] .m-portada > :nth-child(1){ animation-delay:.05s; }
+  html[data-disp="movil"] .m-portada > :nth-child(2){ animation-delay:.16s; }
+  html[data-disp="movil"] .m-portada > :nth-child(3){ animation-delay:.26s; }
+  html[data-disp="movil"] .m-portada > :nth-child(4){ animation-delay:.36s; }
+  html[data-disp="movil"] .m-portada > :nth-child(5){ animation-delay:.46s; }
+  html[data-disp="movil"] .m-portada > :nth-child(6){ animation-delay:.56s; }
+  html[data-disp="movil"] .m-regla{ animation-name:m-regla; }
+}
+@keyframes m-entra{
+  from{ opacity:0; transform:translateY(14px); }
+  to{ opacity:1; transform:none; }
+}
+@keyframes m-regla{
+  from{ opacity:0; transform:scaleX(0); }
+  to{ opacity:1; transform:none; }
+}
+
+/* --- encabezados de sección --- */
+html[data-disp="movil"] .m-seccion .ceja{
+  margin:0 0 10px; font:400 11.5px var(--m-f-sub); letter-spacing:.26em;
+  text-transform:uppercase; color:var(--m-indigo);
+}
+html[data-disp="movil"] .m-seccion .titulo{
+  margin:0 0 12px; font:500 clamp(28px,8vw,36px)/1.08 var(--m-f-titulo);
+  color:var(--m-tinta); letter-spacing:-.015em;
+}
+html[data-disp="movil"] .m-seccion .bajada{
+  margin:0 0 22px; max-width:none; font-size:14.5px; line-height:1.6;
+  color:var(--m-texto);
+}
+/* los bloques vienen de las capas de escritorio, que los posicionaban en
+   absoluto sobre el lienzo; aquí fluyen */
+html[data-disp="movil"] .m-seccion .temas-bloque,
+html[data-disp="movil"] .m-seccion .secciones-bloque,
+html[data-disp="movil"] .m-seccion .cierre-bloque{
+  position:static; transform:none; inset:auto;
+  width:auto; max-width:none; padding:0;
+  border:0; border-radius:0; background:none;
+  backdrop-filter:none; -webkit-backdrop-filter:none;
+  text-align:left;
+}
+
+/* --- 27 temas como fichas --- */
+html[data-disp="movil"] .m-temas{
+  display:grid; grid-template-columns:1fr 1fr; gap:8px;
+  margin:0 0 18px; padding:0; list-style:none;
+}
+html[data-disp="movil"] .m-tema{
+  display:flex; flex-direction:column; justify-content:space-between; gap:10px;
+  width:100%; min-height:68px; text-align:left; cursor:pointer;
+  padding:12px 13px; border:1px solid var(--m-linea); border-radius:14px;
+  background:var(--m-vidrio); color:var(--m-tinta);
+  font:500 13px/1.25 var(--m-f-ui); letter-spacing:-.005em;
+  -webkit-tap-highlight-color:transparent;
+  transition:border-color .2s, background .2s, transform .12s;
+}
+html[data-disp="movil"] .m-tema:active{
+  transform:scale(.975); border-color:var(--m-linea-fuerte);
+  background:rgba(252,248,240,.85);
+}
+/* cuántos artículos hay, en cifra: cabe en la ficha y no depende del idioma */
+html[data-disp="movil"] .m-tema .m-cuenta{
+  align-self:flex-end;
+  min-width:22px; padding:2px 7px; border-radius:99px;
+  font:500 10.5px/1.6 var(--m-f-sub); letter-spacing:.02em; text-align:center;
+  color:#f8f2ec; background:var(--m-indigo-claro);
+}
+/* un tema todavía sin artículos se ve, pero se ve distinto: es una invitación */
+html[data-disp="movil"] .m-tema[data-vacio="si"]{ background:rgba(252,248,240,.34); }
+html[data-disp="movil"] .m-tema[data-vacio="si"] .m-cuenta{
+  color:var(--m-gris); background:none;
+  border:1px solid var(--m-linea); padding:1px 6px;
+}
+html[data-disp="movil"] .m-temas + .boton{
+  display:block; width:100%; text-align:center; padding:15px 20px;
+}
+
+/* --- 8 secciones como acordeón --- */
+html[data-disp="movil"] .m-secs{
+  margin:0 0 26px; border-top:1px solid var(--m-linea);
+}
+html[data-disp="movil"] .m-sec{ border-bottom:1px solid var(--m-linea); }
+html[data-disp="movil"] .m-sec > summary{
+  display:flex; align-items:center; gap:13px;
+  padding:17px 2px; cursor:pointer; list-style:none;
+  -webkit-tap-highlight-color:transparent;
+}
+html[data-disp="movil"] .m-sec > summary::-webkit-details-marker{ display:none; }
+html[data-disp="movil"] .m-sec .m-punto{
+  width:9px; height:9px; border-radius:50%; flex:none;
+}
+html[data-disp="movil"] .m-sec .m-nombre{
+  flex:1; font:500 16px/1.3 var(--m-f-titulo); color:var(--m-tinta);
+}
+html[data-disp="movil"] .m-sec .m-flecha{
+  flex:none; width:9px; height:9px; margin-top:-4px;
+  border-right:1.4px solid var(--m-linea-fuerte);
+  border-bottom:1.4px solid var(--m-linea-fuerte);
+  transform:rotate(45deg); transition:transform .25s, margin .25s;
+}
+html[data-disp="movil"] .m-sec[open] .m-flecha{ transform:rotate(225deg); margin-top:4px; }
+html[data-disp="movil"] .m-sec .m-cuerpo{ padding:0 2px 20px 22px; }
+html[data-disp="movil"] .m-sec .m-desc{
+  margin:0 0 16px; font-size:14px; line-height:1.6; color:var(--m-texto);
+}
+html[data-disp="movil"] .m-sec .boton{ width:100%; text-align:center; padding:14px 18px; }
+
+/* --- destacados: el carrusel del marcado de escritorio, a lo ancho --- */
+html[data-disp="movil"] .m-seccion .carrusel-zona{
+  position:static; transform:none; width:auto; margin:0 calc(var(--m-lado) * -1);
+}
+html[data-disp="movil"] .m-seccion .carrusel-cab{
+  padding:0 var(--m-lado); margin-bottom:14px;
+}
+/* las flechas son de ratón: con el dedo se arrastra */
+html[data-disp="movil"] .m-seccion .flechas{ display:none; }
+html[data-disp="movil"] .m-seccion .carrusel{
+  gap:12px; padding:2px var(--m-lado) 6px;
+  scroll-padding-left:var(--m-lado);
+  -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain;
+}
+html[data-disp="movil"] .m-seccion .tarjeta{
+  flex-basis:min(78vw, 300px); padding:18px 20px 16px;
+}
+
+/* --- cierre --- */
+html[data-disp="movil"] .m-cierre{ padding-bottom:34px; }
+html[data-disp="movil"] .m-cierre .titulo{ font-size:clamp(25px,7vw,32px); }
+html[data-disp="movil"] .m-cierre .cierre-acciones{
+  flex-direction:column; gap:10px; justify-content:stretch;
+}
+html[data-disp="movil"] .m-cierre .cierre-acciones .boton{
+  width:100%; text-align:center; padding:16px 20px;
+}
+
+/* ------------------------------------------------------------------ *
+   4 · portal editorial: convocatoria y envío
+ * ------------------------------------------------------------------ */
+
+html[data-disp="movil"] .portal-seccion{
+  width:auto; margin:0; padding:44px var(--m-lado) 8px;
+  scroll-margin-top:70px;
+}
+html[data-disp="movil"] .portal-intro{ text-align:left; padding-top:44px; }
+html[data-disp="movil"] .portal-intro .titulo{
+  font:500 clamp(28px,8vw,36px)/1.08 var(--m-f-titulo); margin-bottom:14px;
+}
+html[data-disp="movil"] .portal-intro .bajada{
+  margin:0 0 30px; max-width:none; font-size:14.5px; line-height:1.65;
+}
+
+/* las tres cifras, en fila y sin apretarse */
+html[data-disp="movil"] .cifras{
+  justify-content:space-between; gap:12px; margin-bottom:34px;
+  padding:20px 18px; border:1px solid var(--m-linea); border-radius:16px;
+  background:var(--m-vidrio); flex-wrap:nowrap;
+}
+html[data-disp="movil"] .cifras li{ flex:1; text-align:center; }
+html[data-disp="movil"] .cifras strong{ font-size:27px; margin-bottom:4px; }
+html[data-disp="movil"] .cifras span{
+  display:block; font-size:9px; line-height:1.4; letter-spacing:.1em;
+}
+
+/* los 4 pasos: uno bajo otro, con el número a un lado */
+html[data-disp="movil"] .pasos{ gap:10px; }
+html[data-disp="movil"] .pasos li{
+  display:grid; grid-template-columns:auto 1fr; gap:0 16px; align-items:start;
+  padding:18px 20px; border-radius:14px;
+}
+html[data-disp="movil"] .pasos li::before{
+  grid-row:1 / span 2; font-size:20px; margin:0; padding-top:1px;
+}
+html[data-disp="movil"] .pasos h3{ margin:0 0 5px; font-size:15px; }
+html[data-disp="movil"] .pasos p{ font-size:13.5px; }
+
+/* --- el asistente de envío --- */
+html[data-disp="movil"] .tablero{ gap:18px; }
+html[data-disp="movil"] .panel-envio{ padding:24px 18px 22px; border-radius:16px; }
+html[data-disp="movil"] .panel-envio h2{ margin-bottom:20px; font-size:25px; }
+
+/* los cuatro pasos no caben con su nombre: se quedan los números y sólo el
+   paso activo dice cómo se llama. font-size:0 apaga el texto suelto del <li>
+   sin tener que tocar el marcado */
+html[data-disp="movil"] .wiz-pasos{
+  gap:6px; margin-bottom:24px; padding-bottom:16px; flex-wrap:nowrap;
+}
+html[data-disp="movil"] .wiz-pasos li{
+  font-size:0; padding:5px; gap:0; letter-spacing:0;
+}
+html[data-disp="movil"] .wiz-pasos li i{ font-size:10.5px; width:26px; height:26px; }
+html[data-disp="movil"] .wiz-pasos li.activo{
+  font-size:10.5px; letter-spacing:.1em; gap:8px; padding:5px 12px 5px 5px;
+  background:rgba(45,35,46,.05);
+}
+
+html[data-disp="movil"] fieldset.paso legend{ font-size:14.5px; margin-bottom:16px; }
+html[data-disp="movil"] .campo{ margin-bottom:16px; }
+html[data-disp="movil"] .fila2{ grid-template-columns:1fr; gap:16px; }
+
+/* 16px es el mínimo: por debajo, Safari de iOS hace zoom al enfocar el campo
+   y deja la página descuadrada */
+html[data-disp="movil"] input[type=text],
+html[data-disp="movil"] input[type=email],
+html[data-disp="movil"] select,
+html[data-disp="movil"] textarea,
+html[data-disp="movil"] .estado-form input,
+html[data-disp="movil"] .boletin input,
+html[data-disp="movil"] #panelBusqueda{
+  font-size:16px; padding:13px 15px; border-radius:12px;
+}
+html[data-disp="movil"] textarea{ min-height:150px; }
+html[data-disp="movil"] label{ font-size:10.5px; margin-bottom:6px; }
+
+/* el enlace "Consulta los detalles" que acompaña a la etiqueta de sección
+   mide 12px de alto: legible con el ratón, imposible con el pulgar. Aquí se
+   le da área de toque sin moverlo de sitio ni agrandar el texto. */
+html[data-disp="movil"] .label-con-ayuda{ gap:10px; flex-wrap:wrap; }
+html[data-disp="movil"] .label-con-ayuda .link-detalles{
+  padding:8px 0; margin:-8px 0 -7px; font-size:11px;
+}
+
+html[data-disp="movil"] .zona-archivo{ padding:30px 18px; border-radius:14px; }
+html[data-disp="movil"] #listaArchivos li{ padding:12px 14px; font-size:13px; }
+html[data-disp="movil"] #listaArchivos button{ padding:6px 8px; font-size:16px; }
+
+html[data-disp="movil"] .decl{ gap:13px; margin-bottom:16px; }
+html[data-disp="movil"] .decl input{ width:20px; height:20px; margin-top:2px; }
+html[data-disp="movil"] .decl span{ font-size:13.5px; }
+
+/* Atrás y Continuar a lo ancho: primero el que avanza */
+html[data-disp="movil"] .wiz-acciones{
+  flex-direction:column-reverse; align-items:stretch; gap:10px;
+  margin-top:24px; padding-top:20px;
+}
+html[data-disp="movil"] .wiz-acciones .boton{
+  width:100%; text-align:center; padding:16px 20px;
+}
+
+html[data-disp="movil"] #confirmacion h3{ font-size:23px; }
+html[data-disp="movil"] #confirmacion dl{
+  grid-template-columns:1fr; gap:3px 0; padding:16px 18px;
+}
+html[data-disp="movil"] #confirmacion dt{ padding-top:10px; }
+html[data-disp="movil"] #confirmacion dt:first-child{ padding-top:0; }
+
+html[data-disp="movil"] .lateral > div{ padding:22px 18px; margin-bottom:14px; border-radius:16px; }
+html[data-disp="movil"] .lateral h3{ font-size:16px; margin-bottom:14px; }
+html[data-disp="movil"] .lateral summary{ padding:16px 2px; font-size:14px; }
+
+html[data-disp="movil"] .estado-bloque{ padding:22px 18px; border-radius:16px; }
+html[data-disp="movil"] .estado-form{ grid-template-columns:1fr; gap:10px; }
+html[data-disp="movil"] .estado-form .boton{ width:100%; padding:15px 20px; }
+html[data-disp="movil"] .estado-res dl{ grid-template-columns:1fr; gap:3px 0; }
+html[data-disp="movil"] .estado-res dt{ padding-top:9px; }
+
+/* ------------------------------------------------------------------ *
+   5 · pie de página
+ * ------------------------------------------------------------------ */
+
+html[data-disp="movil"] footer.pie{ margin-top:52px; }
+html[data-disp="movil"] .pie-int{ width:auto; padding:38px var(--m-lado) 26px; }
+html[data-disp="movil"] .pie-rejilla{ grid-template-columns:1fr; gap:30px; margin-bottom:34px; }
+html[data-disp="movil"] .pie-marca p{ max-width:none; font-size:13.5px; }
+html[data-disp="movil"] .pie ul a{ display:inline-block; padding:5px 0; font-size:14px; }
+html[data-disp="movil"] .boletin form{ flex-direction:column; gap:10px; }
+html[data-disp="movil"] .boletin .boton{ width:100%; padding:15px 20px; }
+html[data-disp="movil"] .pie-legal{ flex-direction:column; gap:12px; font-size:11.5px; }
+
+/* la salida de emergencia: quien quiera el recorrido completo en el teléfono
+   puede pedirlo, y volver */
+html[data-disp="movil"] .m-cambia-vista{
+  display:inline-block; margin-top:4px; padding:10px 0;
+  background:none; border:0; cursor:pointer;
+  font:500 11.5px var(--m-f-ui); letter-spacing:.14em; text-transform:uppercase;
+  color:var(--m-gris); text-decoration:underline; text-underline-offset:4px;
+}
+
+/* ------------------------------------------------------------------ *
+   6 · panel de artículos: en teléfono es una hoja que sube
+ * ------------------------------------------------------------------ */
+
+html[data-disp="movil"] #panel{
+  top:auto; right:0; left:0; bottom:0;
+  width:auto; height:88vh; max-height:88vh;
+  height:88dvh; max-height:88dvh;
+  border-left:0; border-top:1px solid var(--m-linea);
+  border-radius:22px 22px 0 0;
+  background:var(--m-hoja);
+  box-shadow:0 -14px 44px rgba(45,35,46,.2);
+  transform:translateY(102%);
+  transition:transform .38s cubic-bezier(.32,.72,.28,1);
+  padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+html[data-disp="movil"] body.panel-abierto #panel{ transform:translateY(0); }
+/* el asa: señal de que la hoja se puede cerrar */
+html[data-disp="movil"] #panel::before{
+  content:""; position:absolute; top:9px; left:50%; transform:translateX(-50%);
+  width:40px; height:4px; border-radius:99px; background:var(--m-linea-fuerte);
+}
+html[data-disp="movil"] .panel-cab{ padding:26px 20px 14px; }
+html[data-disp="movil"] .panel-cab h3{ font-size:21px; }
+html[data-disp="movil"] .cierre{ width:40px; height:40px; }
+html[data-disp="movil"] .panel-busca{ padding:0 20px 4px; }
+html[data-disp="movil"] .panel-meta{ margin:10px 20px 6px; }
+html[data-disp="movil"] #panelLista{
+  padding:4px 20px 16px; overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+html[data-disp="movil"] .art{ padding:15px 0; }
+html[data-disp="movil"] .art strong{ font-size:15px; }
+html[data-disp="movil"] .ind{ padding:16px 2px; font-size:14.5px; }
+html[data-disp="movil"] .panel-pie{ padding:14px 20px 18px; }
+html[data-disp="movil"] .panel-pie .boton{ padding:16px 20px; }
+/* con la hoja arriba, el fondo no se mueve */
+html[data-disp="movil"] body.panel-abierto{ overflow:hidden; }
+
+/* ------------------------------------------------------------------ *
+   7 · barra de pestañas
+ * ------------------------------------------------------------------ */
+
+html[data-disp="movil"] .m-tabs{
+  position:fixed; left:0; right:0; bottom:0; z-index:60;
+  display:grid; grid-template-columns:repeat(4,1fr);
+  padding-bottom:env(safe-area-inset-bottom, 0px);
+  background:rgba(231,222,203,.95);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border-top:1px solid var(--m-linea);
+}
+html[data-disp="movil"] .m-tab{
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+  padding:9px 4px 8px; background:none; border:0; cursor:pointer;
+  color:var(--m-gris); text-decoration:none;
+  font:500 9.5px var(--m-f-ui); letter-spacing:.11em; text-transform:uppercase;
+  -webkit-tap-highlight-color:transparent;
+  transition:color .2s;
+}
+html[data-disp="movil"] .m-tab svg{
+  width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.5;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+html[data-disp="movil"] .m-tab[aria-current="true"]{ color:var(--m-tinta); }
+html[data-disp="movil"] .m-tab.m-tab--cta{ color:var(--m-coral); }
+html[data-disp="movil"] .m-tab:active{ color:var(--m-tinta); }
+
+/* con la hoja de artículos arriba, la barra estorba */
+html[data-disp="movil"] body.panel-abierto .m-tabs{
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+
+/* ------------------------------------------------------------------ *
+   7b · la versión de teléfono no es un solo tamaño
+ * ------------------------------------------------------------------ */
+
+/* Teléfono acostado: 390px de alto y la portada a pantalla completa dejaba
+   los botones fuera de cuadro. Aquí la portada deja de medir una pantalla y
+   se compacta; el ancho sobra, así que las acciones se ponen en fila. */
+@media (max-height:560px){
+  html[data-disp="movil"] .m-portada{
+    min-height:auto; gap:14px;
+    padding-top:calc(72px + env(safe-area-inset-top, 0px)); padding-bottom:26px;
+  }
+  html[data-disp="movil"] .m-palabra{ font-size:clamp(38px, 13vh, 62px); }
+  html[data-disp="movil"] .m-lema{ font-size:14.5px; }
+  html[data-disp="movil"] .m-regla{ width:44px; }
+  html[data-disp="movil"] .m-acciones{ flex-direction:row; flex-wrap:wrap; }
+  html[data-disp="movil"] .m-acciones .boton{ width:auto; }
+}
+
+/* Pantallas anchas que siguen siendo táctiles (tableta en vertical, teléfono
+   acostado): las mismas piezas, pero aprovechando el ancho en vez de estirar
+   dos columnas gigantes y renglones de 90 caracteres. */
+@media (min-width:600px){
+  html[data-disp="movil"]{ --m-lado:34px; }
+  html[data-disp="movil"] .m-seccion,
+  html[data-disp="movil"] .portal-seccion{
+    max-width:760px; margin-left:auto; margin-right:auto;
+  }
+  html[data-disp="movil"] .m-portada{ max-width:760px; margin:0 auto; }
+  html[data-disp="movil"] .m-temas{
+    grid-template-columns:repeat(auto-fill, minmax(178px, 1fr));
+  }
+  html[data-disp="movil"] .m-seccion .bajada,
+  html[data-disp="movil"] .portal-intro .bajada{ max-width:62ch; }
+  html[data-disp="movil"] .fila2{ grid-template-columns:1fr 1fr; }
+  html[data-disp="movil"] .m-acciones{ flex-direction:row; }
+  html[data-disp="movil"] .m-acciones .boton{ width:auto; }
+  html[data-disp="movil"] .wiz-acciones{
+    flex-direction:row; justify-content:space-between; align-items:center;
+  }
+  html[data-disp="movil"] .wiz-acciones .boton{ width:auto; }
+  /* la hoja de artículos no necesita ocupar todo el ancho de una tableta */
+  html[data-disp="movil"] #panel{
+    left:auto; width:min(520px, 100vw); border-top-right-radius:0;
+    border-left:1px solid var(--m-linea);
+  }
+  html[data-disp="movil"] #panel::before{ left:auto; right:calc(50% - 20px); }
+}
+
+/* ------------------------------------------------------------------ *
+   8 · páginas satélite (¿Quiénes somos?, Lineamientos, equipo)
+ * ------------------------------------------------------------------ */
+
+/* main:not([id]) apunta sólo a las satélites: los dos <main> de la portada
+   llevan id (#movil y #portal) y traen sus propias medidas */
+html[data-disp="movil"] main:not([id]){
+  max-width:none;
+  padding:calc(76px + env(safe-area-inset-top, 0px)) var(--m-lado) 70px;
+}
+
+html[data-disp="movil"] .hero-qs{ padding:5vh 0 3vh; }
+html[data-disp="movil"] main:not([id]) > .ceja,
+html[data-disp="movil"] .hero-cont .ceja{ font-size:12px; letter-spacing:.24em; }
+html[data-disp="movil"] main:not([id]) h1{ font-size:clamp(32px,9vw,42px); line-height:1.05; }
+html[data-disp="movil"] main:not([id]) .entrada{ max-width:none; font-size:16px; }
+html[data-disp="movil"] main:not([id]) section{ margin-top:48px; scroll-margin-top:70px; }
+html[data-disp="movil"] main:not([id]) h2{ font-size:clamp(22px,6.4vw,27px); }
+html[data-disp="movil"] main:not([id]) .texto{ max-width:none; }
+
+/* tarjetas de valores y de niveles: una por fila, que a dos quedan ilegibles */
+html[data-disp="movil"] .valores,
+html[data-disp="movil"] .niveles{ grid-template-columns:1fr; gap:12px; }
+html[data-disp="movil"] .valor,
+html[data-disp="movil"] .nivel{ padding:20px 18px; }
+
+/* listas de definición: etiqueta arriba, texto abajo */
+html[data-disp="movil"] .generales li,
+html[data-disp="movil"] .integridad li{ grid-template-columns:1fr; gap:7px; }
+html[data-disp="movil"] .generales p,
+html[data-disp="movil"] .integridad p{ max-width:none; }
+
+/* acordeón de lineamientos */
+html[data-disp="movil"] .acordeon summary{ padding:18px 2px; gap:12px; }
+html[data-disp="movil"] .acordeon summary h3{ font-size:15.5px; }
+/* la etiqueta de nivel no cabe junto al título en pantalla angosta */
+html[data-disp="movil"] .acordeon summary .nivel-etq{ display:none; }
+html[data-disp="movil"] .cuerpo-sec{ padding:2px 2px 24px 22px; }
+html[data-disp="movil"] .cuerpo-sec p{ max-width:none; }
+html[data-disp="movil"] .dos-col{ grid-template-columns:1fr; gap:18px; }
+html[data-disp="movil"] .umbral{ max-width:none; }
+
+/* la matriz resumen se desborda a lo ancho: se desliza con el dedo, y se
+   avisa con una sombra en el borde para que se note que hay más */
+html[data-disp="movil"] .tabla-scroll{
+  margin:0 calc(var(--m-lado) * -1); padding:0 var(--m-lado);
+  -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain;
+  background:
+    linear-gradient(to right, var(--m-fondo) 30%, rgba(231,222,203,0)) left / 26px 100% no-repeat,
+    linear-gradient(to left, var(--m-fondo) 30%, rgba(231,222,203,0)) right / 26px 100% no-repeat;
+}
+html[data-disp="movil"] .matriz{ min-width:520px; font-size:13px; }
+html[data-disp="movil"] .matriz th{ padding:9px 10px 7px; }
+html[data-disp="movil"] .matriz td{ padding:9px 10px; }
+
+/* ojo con el nombre: .cierre es el bloque de cierre de estas páginas, pero
+   en la portada es el BOTÓN de cerrar del panel de artículos. Sin acotarlo a
+   div.cierre, el margen de aquí le caía encima a la ✕ de la hoja. */
+html[data-disp="movil"] div.cierre{
+  margin-top:52px; padding-top:28px; flex-direction:column; align-items:stretch; gap:16px;
+}
+html[data-disp="movil"] div.cierre p{ max-width:none; }
+html[data-disp="movil"] div.cierre .boton{ width:100%; text-align:center; padding:16px 20px; }
+
+/* las satélites no tienen barra de pestañas: sólo la portada la monta */
+html[data-disp="movil"] body:not(:has(.m-tabs)){ padding-bottom:0; }
+
+/* equipo-ds.html no tiene barra fija: centra su tarjeta y no necesita hueco */
+html[data-disp="movil"] body:not(:has(.marco)) main:not([id]){
+  padding-top:var(--m-lado); padding-bottom:var(--m-lado);
+}

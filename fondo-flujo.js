@@ -11,16 +11,24 @@
   lienzo.style.cssText =
     "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;";
   document.body.prepend(lienzo);
-  // el contenido va por encima del lienzo
+  // el contenido va por encima del lienzo. Sólo se tocan los elementos que
+  // están SIN posicionar: los que ya traen position propia (la barra fija,
+  // el panel de artículos, la barra de pestañas) llevan también su z-index
+  // en la hoja de estilos, y sobrescribirlo en línea los sacaba de su sitio.
   for (const el of document.body.children) {
-    if (el !== lienzo && el.style && !el.style.zIndex) {
-      el.style.position = el.style.position || "relative";
-      el.style.zIndex = "1";
-    }
+    if (el === lienzo || !el.style || el.style.zIndex) continue;
+    if (getComputedStyle(el).position !== "static") continue;
+    el.style.position = "relative";
+    el.style.zIndex = "1";
   }
 
   const ctx = lienzo.getContext("2d");
   const quieto = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // En teléfono el campo se acumula una vez y el bucle no arranca: la textura
+  // se ve igual (el campo está congelado, las estelas sólo se van sumando) y
+  // el aparato no gasta batería animando un fondo durante toda la visita.
+  const movil = !!window.VERTICES_MOVIL;
+  const estatico = quieto || movil;
 
   // paleta: fondo crema original y destellos de acento muy escasos
   const CREMA = [231, 222, 203];              // #E7DECB
@@ -74,7 +82,9 @@
 
   function siembra() {
     // densidad alta: muchos trazos finos superpuestos que acumulan las curvas
-    const n = Math.round(Math.min(4200, Math.max(900, (W * H) / 430)));
+    const n = movil
+      ? Math.round(Math.min(560, Math.max(320, (W * H) / 620)))
+      : Math.round(Math.min(4200, Math.max(900, (W * H) / 430)));
     particulas = Array.from({ length: n }, () => nace({}));
     // arranque escalonado: reparte las vidas para que no renazcan todas a la vez
     particulas.forEach((p) => { p.vida = (p.vida * Math.random()) | 0; });
@@ -119,9 +129,10 @@
     cancelAnimationFrame(raf);
     medir();
     siembra();
-    if (quieto) {
+    if (estatico) {
       // acumula un mapa de flujo estático y se detiene
-      for (let i = 0; i < 1100; i++) paso(0.033);
+      const pasadas = movil ? 620 : 1100;
+      for (let i = 0; i < pasadas; i++) paso(0.033);
       return;
     }
     ultimo = performance.now();
@@ -129,7 +140,13 @@
   }
 
   let temporizador;
+  let anchoPrevio = innerWidth;
   addEventListener("resize", () => {
+    // la barra de URL del teléfono entra y sale al desplazarse, y cada
+    // cambio de alto dispara resize: si eso recalculara el mapa, el fondo
+    // parpadearía en cada scroll. Sólo se rehace al girar el aparato.
+    if (movil && innerWidth === anchoPrevio) return;
+    anchoPrevio = innerWidth;
     clearTimeout(temporizador);
     temporizador = setTimeout(arranca, 200);
   });

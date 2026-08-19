@@ -11,6 +11,7 @@
 <link rel="preload" href="fonts/NeueMontreal-Medium.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="fonts/NeueMontreal-Bold.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="fonts/Garet-Book.woff2" as="font" type="font/woff2" crossorigin />
+<script src="dispositivo.js"></script>
 <script src="config.js"></script>
 <style>
   /* Tipografías del Manual de Identidad: Neue Montreal (logo y títulos) y Garet (subtítulos) */
@@ -600,6 +601,7 @@ text-decoration:underline;
     .menu-panel .solo-angosto{ display:block; }
   }
 </style>
+<link rel="stylesheet" href="movil.css?v=1" />
 </head>
 <body>
 
@@ -1915,7 +1917,6 @@ function pickAt(x, y) {
   return null;
 }
 
-window.addEventListener("resize", resize);
 window.addEventListener("pointermove", (ev) => {
   if (dragging) {
     dragYaw += (ev.clientX - lastMX) * 0.005;
@@ -2377,14 +2378,21 @@ window.__alCambiarIdioma = () => {
   if (sec) sec.nodes.forEach((n) => { if (n.label0) { n.label = TR(n.label0); n.desc = TR(n.desc0); } });
 };
 
-/* ------- arranque ------- */
+/* ------- arranque -------
+   En teléfono el motor no arranca: movil.js arma otra portada, el lienzo
+   está oculto y el espaciador del recorrido mide cero, así que animar
+   partículas sería gastar batería para nadie. Todo lo de arriba (datos,
+   panel de artículos, carrusel, formulario) sí se necesita y ya corrió. */
 
-resize();
-uSmooth = scrollU(); // si la pagina carga a mitad del recorrido, sin carreras
-requestAnimationFrame(frame);
-// re-muestrear la palabra cuando las tipografias web ya cargaron
-if (document.fonts && document.fonts.ready) {
-  document.fonts.ready.then(() => buildParticles());
+if (!window.VERTICES_MOVIL) {
+  window.addEventListener("resize", resize);
+  resize();
+  uSmooth = scrollU(); // si la pagina carga a mitad del recorrido, sin carreras
+  requestAnimationFrame(frame);
+  // re-muestrear la palabra cuando las tipografias web ya cargaron
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => buildParticles());
+  }
 }
 
 // hook de QA para verificacion sin scroll real: fija el estado en u (0 a 1)
@@ -2420,6 +2428,7 @@ window.__qa = {
   nav.querySelectorAll(".menu-panel a").forEach((a) => a.addEventListener("click", () => nav.classList.remove("abierto")));
 })();
 </script>
+<script src="movil.js?v=1" defer></script>
 <script src="idiomas.js?v=5" defer></script>
 </body>
 </html>
