@@ -391,6 +391,16 @@ text-decoration:underline;
   .decl{ display:flex; gap:12px; align-items:flex-start; margin-bottom:14px; cursor:pointer; }
   .decl input{ margin-top:4px; accent-color:var(--naranja); width:15px; height:15px; flex:none; }
   .decl span{ font-size:13.5px; line-height:1.55; color:var(--texto); letter-spacing:0; text-transform:none; }
+  .decl-link{
+  color:var(--indigo-claro);
+  text-decoration:none;
+  border-bottom:1px solid rgba(94,93,199,.35);
+  transition:border-color .2s, color .2s;
+}
+.decl-link:hover{
+  color:var(--indigo);
+  border-bottom-color:var(--indigo);
+}
 
   .wiz-acciones{
     display:flex; justify-content:space-between; align-items:center; gap:14px;
@@ -867,7 +877,8 @@ text-decoration:underline;
             <label class="decl"><input type="checkbox" id="d2" /><span>No está publicado ni en revisión en otro medio (opcional).</span></label>
             <label class="decl"><input type="checkbox" id="d3" /><span>Acepto el proceso de dictaminación doble ciego y los ajustes editoriales que resulten.</span></label>
             <label class="decl"><input type="checkbox" id="d4" /><span>Autorizo la publicación del texto en la edición en PDF y en el sitio web de Vértices.</span></label>
-          </fieldset>
+           <label class="decl"><input type="checkbox" id="d5" /><span>He leído y acepto los <a class="decl-link" href="aviso-privacidad.pdf" target="_blank" rel="noopener">Términos, condiciones y aviso de privacidad para autores</a> de la revista Vértices.</span></label>
+           <label class="decl"><input type="checkbox" id="d6" /><span>He leído y acepto la <a class="decl-link" href="derechos-imagen.pdf" target="_blank" rel="noopener">Cesión de derechos de uso de imagen</a> de la revista Vértices.</span></label>
 
           <p id="formError" role="alert"></p>
           <div class="wiz-acciones">
@@ -2117,8 +2128,8 @@ function validarPaso(i) {
   }
   if (i === 3) {
     if (!val("usoIA")) return TR("Indica si usaste herramientas de inteligencia artificial.");
-    if (!["d1", "d3", "d4"].every((id) => document.getElementById(id).checked))
-      return TR("Confirma las cuatro declaraciones para poder enviar.");
+    if (!["d1", "d3", "d4", "d5", "d6"].every((id) => document.getElementById(id).checked))
+      return TR("Confirma todas las declaraciones obligatorias para poder enviar.");
   }
   return null;
 }
