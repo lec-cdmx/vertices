@@ -299,8 +299,13 @@
   .panel-envio{ padding:34px 36px 30px; }
   .panel-envio > .ceja{ margin-bottom:8px; }
   .panel-envio h2{
-    margin:0 0 26px; font:500 clamp(24px,2.6vw,34px)/1.1 var(--f-titulo); color:var(--crema);
-  }
+  margin:0 0 10px; font:500 clamp(24px,2.6vw,34px)/1.1 var(--f-titulo); color:var(--crema);
+}
+.fecha-limite{
+  margin:0 0 26px; max-width:52ch;
+  font-size:12.5px; line-height:1.6; letter-spacing:.02em; color:var(--gris);
+}
+.fecha-limite strong{ color:var(--hueso); font-weight:600; }
 
   .wiz-pasos{
     display:flex; gap:4px; margin:0 0 30px; padding:0 0 18px; list-style:none;
@@ -733,8 +738,9 @@ text-decoration:underline;
       <div class="panel-envio">
         <p class="ceja">Portal de envíos</p>
         <h2>Envío de manuscritos</h2>
+<p class="fecha-limite para primera edición"><strong>20 de septiembre de 2026</strong>. Los trabajos entregados después de esa fecha se tomarán en cuenta para la segunda edición, no para la primera.</p>
 
-        <form id="formulario" novalidate>
+<form id="formulario" novalidate>
           <ol class="wiz-pasos" id="wizPasos">
             <li class="activo" data-paso="0"><i>1</i>Autoría</li>
             <li data-paso="1"><i>2</i>Manuscrito</li>
