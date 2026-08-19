@@ -38,14 +38,15 @@
   const PROB_ACENTO = 0.04; // fracción de partículas con destello de color
   const VIDA_MIN = 500, VIDA_MAX = 1300; // cuadros de vida: cada partícula traza una curva larga
     // presupuesto de cuadros dividido en dos fases
-  const CUADROS_DIBUJO = 420;        // ~7s a 60 FPS dibujando tinta nueva
-  const CUADROS_ENFRIAMIENTO = 150;  // ~2.5s a 60 FPS solo aclarando, sin tinta nueva
-  const MAX_CUADROS = CUADROS_DIBUJO + CUADROS_ENFRIAMIENTO;
-  let cuadros = 0;
+  // presupuesto por TIEMPO REAL, no por cuadros: así son siempre 10s exactos
+  // sin importar si la pantalla del usuario va a 60Hz, 120Hz, etc.
+  const DURACION_ANIMACION_MS = 10000;    // toda la animación cabe en los primeros 10s
+  const DURACION_ENFRIAMIENTO_MS = 1500;  // de esos 10s, los últimos 1.5s solo aclaran (sin trazos nuevos)
+  const DURACION_DIBUJO_MS = DURACION_ANIMACION_MS - DURACION_ENFRIAMIENTO_MS;
+  let inicioMs = 0;
  
   let W = 0, H = 0, dpr = 1, particulas = [], t = 0, raf = 0;
-
-
+ 
   function medir() {
     dpr = Math.min(devicePixelRatio || 1, 2);
     W = innerWidth; H = innerHeight;
@@ -55,7 +56,7 @@
     ctx.fillStyle = `rgb(${CREMA.join(",")})`;
     ctx.fillRect(0, 0, W, H);
   }
-
+ 
   // campo de flujo CONGELADO: ondas de muy baja frecuencia = canales laminares
   // amplios; al no depender del tiempo, las líneas de corriente son fijas y
   // las estelas se acumulan en curvas largas y limpias (no ruido disperso).
@@ -66,7 +67,7 @@
       Math.sin((x - y) * 0.0011) * 0.8
     );
   }
-
+ 
   function nace(p) {
     const acento = Math.random() < PROB_ACENTO;
     const lider = !acento && Math.random() < PROB_LIDER;
@@ -77,16 +78,18 @@
     else { p.color = TINTA; p.op = OP_TINTA; p.vel = 14 + Math.pow(Math.random(), 1.8) * 110; p.ancho = 0.6; }
     return p;
   }
-
+ 
   function siembra() {
-    // densidad alta: muchos trazos finos superpuestos que acumulan las curvas
-    const n = Math.round(Math.min(4200, Math.max(900, (W * H) / 430)));
+    // densidad moderada: antes llegaba hasta 4200 partículas, lo que
+    // cubría casi toda la pantalla de tinta en pocos cuadros. Se baja el
+    // techo y se sube el divisor para reducir la cobertura por cuadro.
+    const n = Math.round(Math.min(1800, Math.max(500, (W * H) / 900)));
     particulas = Array.from({ length: n }, () => nace({}));
     // arranque escalonado: reparte las vidas para que no renazcan todas a la vez
     particulas.forEach((p) => { p.vida = (p.vida * Math.random()) | 0; });
   }
-
-    // dibujando=false → fase de enfriamiento: solo se aplica el velo, sin
+ 
+  // dibujando=false → fase de enfriamiento: solo se aplica el velo, sin
   // añadir tinta nueva, así el fondo converge hacia un estado más claro
   // antes de congelarse.
   function paso(dt, dibujando) {
@@ -122,16 +125,15 @@
   function ciclo(ms) {
     const dt = Math.min(0.05, (ms - ultimo) / 1000 || 0.016);
     ultimo = ms;
- 
     t += dt;
-    const dibujando = cuadros < CUADROS_DIBUJO;
+ 
+    const transcurrido = ms - inicioMs;
+    const dibujando = transcurrido < DURACION_DIBUJO_MS;
     paso(dt, dibujando);
  
-    cuadros++;
- 
-    if (cuadros >= MAX_CUADROS) {
+    if (transcurrido >= DURACION_ANIMACION_MS) {
       cancelAnimationFrame(raf);
-      return; // el último cuadro pintado queda como fondo estático
+      return; // se cumplieron los 10s: el último cuadro pintado queda fijo para siempre
     }
  
     raf = requestAnimationFrame(ciclo);
@@ -139,16 +141,20 @@
  
   function arranca() {
     cancelAnimationFrame(raf);
-    cuadros = 0;
     medir();
     siembra();
     if (quieto) {
-      // acumula un mapa de flujo estático y luego lo aclara antes de dejarlo fijo
-      for (let i = 0; i < CUADROS_DIBUJO; i++) paso(0.033, true);
-      for (let i = 0; i < CUADROS_ENFRIAMIENTO; i++) paso(0.033, false);
+      // sin animar: reproduce igual el presupuesto de 10s de golpe y se
+      // queda en el estado final ya aclarado
+      const dtFijo = 0.033;
+      const cuadrosDibujo = Math.round(DURACION_DIBUJO_MS / (dtFijo * 1000));
+      const cuadrosEnfriamiento = Math.round(DURACION_ENFRIAMIENTO_MS / (dtFijo * 1000));
+      for (let i = 0; i < cuadrosDibujo; i++) paso(dtFijo, true);
+      for (let i = 0; i < cuadrosEnfriamiento; i++) paso(dtFijo, false);
       return;
     }
     ultimo = performance.now();
+    inicioMs = ultimo;
     raf = requestAnimationFrame(ciclo);
   }
  
@@ -161,4 +167,4 @@
     ? document.addEventListener("DOMContentLoaded", arranca)
     : arranca();
 })();
-
+ 
