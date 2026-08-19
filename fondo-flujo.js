@@ -37,7 +37,7 @@
   const PROB_LIDER = 0.25;  // fracción de partículas líderes (barridos continuos)
   const PROB_ACENTO = 0.04; // fracción de partículas con destello de color
   const VIDA_MIN = 500, VIDA_MAX = 1300; // cuadros de vida: cada partícula traza una curva larga
-  const MAX_CUADROS =900; // 15 segundos a 60 FPS
+  const MAX_CUADROS =600; // 15 segundos a 60 FPS
   let cuadros = 0;
    
   let W = 0, H = 0, dpr = 1, particulas = [], t = 0, raf = 0;
