@@ -44,6 +44,82 @@
   // el último no es una parada del recorrido sino la acción: va en coral
   if (botones.length) botones[botones.length - 1].classList.add("riel--cta");
 
+  /* --- los destacados, como cajón --- *
+
+     El carrusel de destacados tapaba la red neuronal. Ahora asoma a la mitad
+     y se saca con el dedo. La clase la pone este script y no la hoja de
+     estilos a propósito: si el script fallara, el carrusel se vería entero
+     como siempre en vez de quedarse a medias y sin forma de abrirse. */
+  const cajon = document.querySelector("#capaSecciones .carrusel-zona");
+  if (cajon) {
+    cajon.classList.add("m-cajon");
+
+    const tirador = document.createElement("button");
+    tirador.type = "button";
+    tirador.className = "m-tirador";
+    tirador.setAttribute("aria-expanded", "false");
+    // reusa un texto que ya está traducido en los cinco idiomas
+    tirador.innerHTML = '<i></i><span class="sr-solo">Ver artículos</span>';
+    cajon.prepend(tirador);
+
+    const cinta = cajon.querySelector(".carrusel");
+    const ASOMA = 118;                     // lo que se ve en reposo
+    let abierto = false, tope = 0, dy = 0;
+    let x0 = 0, y0 = 0, arrastrando = false, decidido = false;
+
+    const mide = () => { tope = Math.max(ASOMA + 40, cinta.scrollHeight + 6); };
+
+    const asienta = (ab) => {
+      abierto = ab;
+      cajon.classList.toggle("abierto", ab);
+      cinta.style.maxHeight = "";          // la altura vuelve a mandarla el CSS
+      tirador.setAttribute("aria-expanded", ab ? "true" : "false");
+    };
+
+    cajon.addEventListener("pointerdown", (ev) => {
+      mide();
+      x0 = ev.clientX; y0 = ev.clientY; dy = 0;
+      arrastrando = true; decidido = false;
+      cajon.classList.add("arrastrando");
+    });
+
+    cajon.addEventListener("pointermove", (ev) => {
+      if (!arrastrando) return;
+      const ax = ev.clientX - x0, ay = ev.clientY - y0;
+      if (!decidido) {
+        // el gesto iba de lado: es el carrusel, no el cajón
+        if (Math.abs(ax) > Math.abs(ay) && Math.abs(ax) > 6) {
+          arrastrando = false;
+          cajon.classList.remove("arrastrando");
+          return;
+        }
+        if (Math.abs(ay) < 6) return;
+        decidido = true;
+      }
+      dy = ay;
+      // hacia arriba (ay negativo) el cajón crece
+      const base = abierto ? tope : ASOMA;
+      cinta.style.maxHeight =
+        Math.max(ASOMA, Math.min(tope, base - dy)) + "px";
+    });
+
+    const suelta = () => {
+      if (!arrastrando) return;
+      arrastrando = false;
+      cajon.classList.remove("arrastrando");
+      if (!decidido) { cinta.style.maxHeight = ""; return; }
+      const base = abierto ? tope : ASOMA;
+      const altura = Math.max(ASOMA, Math.min(tope, base - dy));
+      // se queda donde esté más cerca, con el punto de corte a un tercio
+      asienta(altura > ASOMA + (tope - ASOMA) / 3);
+    };
+    cajon.addEventListener("pointerup", suelta);
+    cajon.addEventListener("pointercancel", suelta);
+
+    // tocar el tirador también lo abre y lo cierra
+    tirador.addEventListener("click", () => { if (!decidido) asienta(!abierto); });
+  }
+
   const legal = document.querySelector(".pie-legal");
   if (!legal || typeof window.VERTICES_CAMBIA_VISTA !== "function") return;
 
