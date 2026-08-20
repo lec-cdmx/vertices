@@ -8,6 +8,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg fill='none' stroke='%232d232e' stroke-width='1.6'%3E%3Cpath d='M16 4 L28 26 L4 26 Z'/%3E%3Cpath d='M16 4 L17 18.5 M4 26 L17 18.5 M28 26 L17 18.5' opacity='.55'/%3E%3C/g%3E%3C/svg%3E" />
 <link rel="preload" href="fonts/NeueMontreal-Medium.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="fonts/Garet-Book.woff2" as="font" type="font/woff2" crossorigin />
+<script src="dispositivo.js"></script>
 <style>
   /* Tipografías del Manual de Identidad: Neue Montreal (logo y títulos) y Garet (subtítulos) */
   @font-face{ font-family:"Neue Montreal"; src:url("fonts/NeueMontreal-Regular.woff2") format("woff2"); font-weight:400; font-style:normal; font-display:swap; }
@@ -47,12 +48,55 @@
   ::selection{ background:var(--indigo); color:var(--beige); }
 
   .marco{
-    position:fixed; top:0; left:0; right:0; z-index:50;
+    /* Flotante, al modo iOS 26: despegada de los tres bordes y en cápsula.
+       El contenido pasa por los lados y por encima en vez de morir contra
+       ella, que es justo cuando el vidrio se lee como material: pegada al
+       borde superior casi nunca tenía nada detrás que enseñar. */
+    position:fixed; z-index:50;
+    top:14px; left:max(16px, 3vw); right:max(16px, 3vw);
+    border-radius:999px;
     display:flex; justify-content:space-between; align-items:center;
-    padding:20px 5vw 22px;
-    background:linear-gradient(rgba(231,222,203,.97), rgba(231,222,203,.8));
-    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-    box-shadow:0 1px 0 rgba(45,35,46,.08);
+    padding:12px 18px 12px 26px;
+    /* Vidrio. Tres capas hacen el material y ninguna sobra:
+       el tinte translúcido deja pasar la imagen; el desenfoque CON saturación
+       es lo que hace que el vidrio recoja el color de lo que cruza por debajo
+       en vez de agrisarlo (un blur sin saturate queda lechoso); y el filo
+       iluminado de arriba más la sombra suave de abajo son los que le dan
+       grosor —sin ellos se lee como un rectángulo plano, no como una lámina
+       apoyada sobre el contenido.
+
+       Sobre el tinte: se probó más translúcido (46-62%) y no funciona en las
+       páginas de texto. El desenfoque de fondo no deshace un párrafo que
+       cruza por debajo —ni subiéndolo a 44px— y entonces el texto de la
+       página se lee A TRAVÉS del vidrio y compite con el de la barra. A
+       76-86% lo que hay detrás queda como un fantasma: se nota que algo pasa,
+       que es lo que hace el material, pero ya no se puede leer. */
+    background:linear-gradient(rgba(238,231,215,.86), rgba(231,222,203,.76));
+    backdrop-filter:blur(30px) saturate(180%);
+    -webkit-backdrop-filter:blur(30px) saturate(180%);
+    /* Flotando, la sombra deja de ser una insinuación bajo un borde y pasa
+       a ser lo que la despega del fondo; y el filo iluminado da la vuelta
+       completa, porque ahora se ven los cuatro lados. */
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.7),
+      inset 0 0 0 1px rgba(255,255,255,.26),
+      0 12px 32px -14px rgba(45,35,46,.34),
+      0 3px 10px -6px rgba(45,35,46,.22);
+  }
+  /* Sin desenfoque de fondo (Firefox sin la bandera, navegadores viejos) un
+     tinte al 46% dejaría cruzar el texto de la página por detrás de la barra.
+     Ahí vuelve a ser casi opaca, que es lo que había antes. */
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    .marco{
+      background:linear-gradient(rgba(231,222,203,.97), rgba(231,222,203,.9));
+    }
+  }
+
+  /* se esconde al bajar y vuelve al subir; lo gobierna barra.js */
+  .marco{ transition:transform .34s cubic-bezier(.32,.72,.28,1); }
+  .marco--fuera{ transform:translateY(calc(-100% - 26px)); }
+  @media (prefers-reduced-motion: reduce){
+    .marco{ transition:none; }
   }
   .marca{ display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--tinta); }
   .emblema{ width:26px; height:26px; color:var(--tinta); }
@@ -210,6 +254,7 @@
     .menu-panel .solo-angosto{ display:block; }
   }
 </style>
+<link rel="stylesheet" href="movil.css?v=1" />
 </head>
 <body>
 
@@ -409,6 +454,7 @@ document.getElementById("boletinForm").addEventListener("submit", (e) => {
 })();
 </script>
 <script src="revelar.js?v=5" defer></script>
+<script src="barra.js?v=2" defer></script>
 <script src="idiomas.js?v=5" defer></script>
 </body>
 </html>

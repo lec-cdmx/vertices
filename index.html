@@ -11,6 +11,7 @@
 <link rel="preload" href="fonts/NeueMontreal-Medium.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="fonts/NeueMontreal-Bold.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="fonts/Garet-Book.woff2" as="font" type="font/woff2" crossorigin />
+<script src="dispositivo.js"></script>
 <script src="config.js"></script>
 <style>
   /* Tipografías del Manual de Identidad: Neue Montreal (logo y títulos) y Garet (subtítulos) */
@@ -79,12 +80,55 @@
 
   /* ------- marco fijo (navegacion en los margenes) ------- */
   .marco{
-    position:fixed; top:0; left:0; right:0; z-index:50;
+    /* Flotante, al modo iOS 26: despegada de los tres bordes y en cápsula.
+       El contenido pasa por los lados y por encima en vez de morir contra
+       ella, que es justo cuando el vidrio se lee como material: pegada al
+       borde superior casi nunca tenía nada detrás que enseñar. */
+    position:fixed; z-index:50;
+    top:14px; left:max(16px, 3vw); right:max(16px, 3vw);
+    border-radius:999px;
     display:flex; align-items:center; justify-content:space-between;
-    padding:20px 5vw 22px;
-    background:linear-gradient(rgba(231,222,203,.97), rgba(231,222,203,.8));
-    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-    box-shadow:0 1px 0 rgba(45,35,46,.08);
+    padding:12px 18px 12px 26px;
+    /* Vidrio. Tres capas hacen el material y ninguna sobra:
+       el tinte translúcido deja pasar la imagen; el desenfoque CON saturación
+       es lo que hace que el vidrio recoja el color de lo que cruza por debajo
+       en vez de agrisarlo (un blur sin saturate queda lechoso); y el filo
+       iluminado de arriba más la sombra suave de abajo son los que le dan
+       grosor —sin ellos se lee como un rectángulo plano, no como una lámina
+       apoyada sobre el contenido.
+
+       Sobre el tinte: se probó más translúcido (46-62%) y no funciona en las
+       páginas de texto. El desenfoque de fondo no deshace un párrafo que
+       cruza por debajo —ni subiéndolo a 44px— y entonces el texto de la
+       página se lee A TRAVÉS del vidrio y compite con el de la barra. A
+       76-86% lo que hay detrás queda como un fantasma: se nota que algo pasa,
+       que es lo que hace el material, pero ya no se puede leer. */
+    background:linear-gradient(rgba(238,231,215,.86), rgba(231,222,203,.76));
+    backdrop-filter:blur(30px) saturate(180%);
+    -webkit-backdrop-filter:blur(30px) saturate(180%);
+    /* Flotando, la sombra deja de ser una insinuación bajo un borde y pasa
+       a ser lo que la despega del fondo; y el filo iluminado da la vuelta
+       completa, porque ahora se ven los cuatro lados. */
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.7),
+      inset 0 0 0 1px rgba(255,255,255,.26),
+      0 12px 32px -14px rgba(45,35,46,.34),
+      0 3px 10px -6px rgba(45,35,46,.22);
+  }
+  /* Sin desenfoque de fondo (Firefox sin la bandera, navegadores viejos) un
+     tinte al 46% dejaría cruzar el texto de la página por detrás de la barra.
+     Ahí vuelve a ser casi opaca, que es lo que había antes. */
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    .marco{
+      background:linear-gradient(rgba(231,222,203,.97), rgba(231,222,203,.9));
+    }
+  }
+
+  /* se esconde al bajar y vuelve al subir; lo gobierna barra.js */
+  .marco{ transition:transform .34s cubic-bezier(.32,.72,.28,1); }
+  .marco--fuera{ transform:translateY(calc(-100% - 26px)); }
+  @media (prefers-reduced-motion: reduce){
+    .marco{ transition:none; }
   }
   .marca{
     display:flex; align-items:center; gap:12px; text-decoration:none;
@@ -615,6 +659,7 @@ text-decoration:underline;
     .menu-panel .solo-angosto{ display:block; }
   }
 </style>
+<link rel="stylesheet" href="movil.css?v=5" />
 </head>
 <body>
 
@@ -1006,6 +1051,7 @@ text-decoration:underline;
     <div>
       <p class="ceja" id="panelCeja"></p>
       <h3 id="panelTitulo"></h3>
+      <p class="panel-desc" id="panelDesc" hidden></p>
     </div>
     <button class="cierre" id="cerrarPanel" type="button" aria-label="Cerrar panel">✕</button>
   </header>
@@ -1092,6 +1138,16 @@ const PH = {
   secEnd:      0.86,
   regroupEnd:  0.965,
 };
+
+/* ------- ajustes de la versión de teléfono -------
+   El recorrido es el mismo: las mismas nueve fases, el mismo motor, los
+   mismos nodos. Lo único que cambia es la geometría —un teléfono en vertical
+   es la forma contraria a la que la nube de temas supone— y el tamaño de los
+   blancos táctiles, porque un dedo no apunta como un cursor.
+
+   Se lee una sola vez: dispositivo.js resolvió la versión antes de pintar y
+   no cambia sin recargar. */
+const ES_MOVIL = !!window.VERTICES_MOVIL;
 
 /* ------- estado del motor ------- */
 const canvas = document.getElementById("c");
@@ -1266,8 +1322,11 @@ function buildNetwork() {
   const nodes = [];
   let guard = 0;
   while (nodes.length < N && guard++ < 40000) {
-    const x = (Math.random() * 2 - 1) * 1.25;
-    const y = (Math.random() * 2 - 1) * 0.85;
+    // en teléfono la nube se pone de pie: más angosta y más alta, que es la
+    // forma de la pantalla. Con el reparto de escritorio, media constelación
+    // caería fuera de cuadro y sus etiquetas se descartarían por solaparse.
+    const x = (Math.random() * 2 - 1) * (ES_MOVIL ? 0.92 : 1.25);
+    const y = (Math.random() * 2 - 1) * (ES_MOVIL ? 1.18 : 0.85);
     const z = (Math.random() * 2 - 1);
     if (nodes.some((n) => (n.x - x) ** 2 + (n.y - y) ** 2 + (n.z - z) ** 2 < 0.24)) continue;
     nodes.push({ x, y, z, imp: 0.65 + Math.random() * 1.05, colIdx: nodes.length % PALETA_NODOS.length, label: TR(TOPICS[nodes.length]), label0: TOPICS[nodes.length] });
@@ -1310,8 +1369,10 @@ function buildNetwork() {
 }
 
 function buildSections() {
-  // el mapa se aplana en vertical para leerse como una franja panoramica
-  const nodes = SECTIONS.map((s, i) => ({ ...s, y: s.y * 0.62, colIdx: i % PALETA_NODOS.length, label: TR(s.label), desc: TR(s.desc), label0: s.label, desc0: s.desc }));
+  // el mapa se aplana en vertical para leerse como una franja panoramica.
+  // En teléfono no se aplana, se estira: las ocho etiquetas necesitan
+  // renglones propios o se montan unas sobre otras.
+  const nodes = SECTIONS.map((s, i) => ({ ...s, y: s.y * (ES_MOVIL ? 1.05 : 0.62), colIdx: i % PALETA_NODOS.length, label: TR(s.label), desc: TR(s.desc), label0: s.label, desc0: s.desc }));
   const edges = SEC_EDGES.map(([i, j]) => {
     const len = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y, nodes[i].z - nodes[j].z);
     return {
@@ -1376,14 +1437,19 @@ function project(pt, ang, xs = 1, yOff = 0, esc = 1, xOff = 0) {
 }
 
 // la constelacion de temas se encoge y se corre a la derecha para no
-// pisar el bloque de texto del margen izquierdo
-const netEsc = () => 0.85;
-const netXOff = () => W * 0.05;
-const netYOff = () => H * 0.05;
+// pisar el bloque de texto del margen izquierdo. En teléfono ese bloque no
+// está al lado sino arriba, así que la nube se centra y baja: el pulgar
+// trabaja abajo y la tarjeta de texto ocupa la cabecera.
+const netEsc = () => (ES_MOVIL ? 0.74 : 0.85);
+const netXOff = () => (ES_MOVIL ? 0 : W * 0.05);
+const netYOff = () => H * (ES_MOVIL ? 0.12 : 0.05);
 
 // compresion horizontal del mapa de secciones: mas ancho que alto,
 // para librar el titulo arriba y el carrusel abajo
 function secXS() {
+  // el mapa de secciones es mucho más ancho que la nube de temas y sus
+  // etiquetas no se descartan al solaparse: en teléfono se comprime más
+  if (ES_MOVIL) return Math.min(0.62, (W * 0.30) / (Math.min(W, H) * 0.38));
   return Math.min(1.15, (W * 0.32) / (Math.min(W, H) * 0.38));
 }
 const secYOff = () => H * 0.01;
@@ -1393,11 +1459,18 @@ const secAng = (t) => 0.16 * Math.sin(t * 0.33);
 
 let buckets = [[], [], [], []]; // indices de particulas por tinte
 
+// En teléfono la palabra y su lema suben. Centrados en la altura quedaban
+// encima del bloque institucional, de la pista de scroll y de la barra de
+// abajo, mientras arriba sobraba media pantalla. Sube la caja de la palabra y
+// el renglón del lema en la misma medida, así que no se despegan. Vale para
+// las dos pantallas donde la palabra aparece: la portada y el cierre.
+const subeMovil = () => (ES_MOVIL ? H * 0.13 : 0);
+
 function buildParticles() {
   const boxW = Math.min(W * 0.84, 1500);
   const boxH = Math.max(120, boxW * 0.30);
   const ox = (W - boxW) / 2;
-  const oy = (H - boxH) / 2;
+  const oy = (H - boxH) / 2 - subeMovil();
   const cx = W / 2, cy = H / 2;
 
   net = buildNetwork();
@@ -1688,10 +1761,12 @@ function drawNet(g, amp, ang, tSec, isSections, xs = 1, yOff = 0, esc = 1, xOff 
 
     // en el mapa de secciones la tipografia va unificada: mismo tamano
     // para las ocho etiquetas, sin variar con la profundidad
-    const scale = isSections ? 1.75 : 1;
+    // a 1.75 no cabe "La Voz de la Experiencia" en 390px sin montarse
+    // sobre su vecina, y estas ocho etiquetas no tienen descarte
+    const scale = isSections ? (ES_MOVIL ? 1.05 : 1.75) : 1;
     const fpx = isSections
       ? Math.max(9, 12.4 * Math.min(1.35, W / 1200 + 0.55)) * scale
-      : Math.max(9, (8.5 + 5.5 * depth) * Math.min(1.35, W / 1200 + 0.55)) * scale;
+      : Math.max(ES_MOVIL ? 10.5 : 9, (8.5 + 5.5 * depth) * Math.min(1.35, W / 1200 + 0.55)) * scale;
     ctx.fillStyle = isHover ? "#19131a" : "#3c323f";
     ctx.font = isSections
       ? `400 ${fpx.toFixed(1)}px Arial, "Helvetica Neue", sans-serif`
@@ -1721,12 +1796,35 @@ function drawNet(g, amp, ang, tSec, isSections, xs = 1, yOff = 0, esc = 1, xOff 
     ctx.globalAlpha = a * (isHover ? 1 : 0.3 + 0.7 * depth);
     const tw2 = ctx.measureText(n.label).width;
     const right = q.x + r + 5 + tw2 > W - 8;
-    const lx = right ? q.x - r - 5 - tw2 : q.x + r + 5;
+    // un nombre largo ("Criptomonedas y Activos Digitales") mide más que
+    // media pantalla de teléfono: al voltearse a la izquierda por no caber a
+    // la derecha, se salía por el otro lado. Se encaja dentro del cuadro,
+    // como ya hacían las ocho etiquetas de secciones.
+    let lx = right ? q.x - r - 5 - tw2 : q.x + r + 5;
+    if (ES_MOVIL) lx = Math.min(W - 8 - tw2, Math.max(8, lx));
     const ly = q.y - r * 0.4;
-    const box = { x0: lx - 4, x1: lx + tw2 + 4, y0: ly - fpx * 0.8, y1: ly + fpx * 0.8 };
+    // en teléfono el descarte por solapamiento se vuelve MÁS severo, no
+    // menos: veintisiete nombres dibujados a la vez sobre 390px de ancho son
+    // una maraña. Vale más enseñar doce que se lean —la constelación gira
+    // despacio, así que con el rato salen todos— que los veintisiete
+    // encimados y ninguno legible.
+    const aire = ES_MOVIL ? 7 : 4;
+    const alto = fpx * (ES_MOVIL ? 1.15 : 0.8);
+    const box = { x0: lx - aire, x1: lx + tw2 + aire, y0: ly - alto, y1: ly + alto };
     if (!isHover && placed.some((b) => box.x0 < b.x1 && box.x1 > b.x0 && box.y0 < b.y1 && box.y1 > b.y0)) continue;
     placed.push(box);
     ctx.textAlign = "left";
+    if (ES_MOVIL) {
+      // sobre un lienzo con estelas, nodos y aristas, un texto de 10px se
+      // pierde: un velo del color del fondo detrás de cada nombre lo despega
+      // sin llegar a tapar la constelación
+      const alfa = ctx.globalAlpha;
+      ctx.globalAlpha = alfa * 0.68;
+      ctx.fillStyle = "rgb(231,222,203)";
+      ctx.fillRect(box.x0, ly - fpx * 0.66, box.x1 - box.x0, fpx * 1.32);
+      ctx.globalAlpha = alfa;
+      ctx.fillStyle = isHover ? "#19131a" : "#3c323f";
+    }
     ctx.fillText(n.label, lx, ly);
   }
   ctx.globalAlpha = 1;
@@ -1792,7 +1890,7 @@ function render(tSec, u) {
     ctx.font = `700 ${layout.fontPx}px "Neue Montreal", Arial, "Helvetica Neue", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(WORD, W / 2, H / 2 + layout.fontPx * 0.03);
+    ctx.fillText(WORD, W / 2, H / 2 + layout.fontPx * 0.03 - subeMovil());
     ctx.shadowBlur = 0;
     // subtitulo en Garet, alineado a la derecha del wordmark (Manual de Identidad)
     const subPx = Math.max(13, layout.fontPx * 0.105);
@@ -1802,7 +1900,7 @@ function render(tSec, u) {
     ctx.fillStyle = "#5e5dc7";
     ctx.globalAlpha = P.textAlpha * 0.85;
     ctx.textAlign = "right";
-    ctx.fillText(SUBTITULO, W / 2 + wordW / 2, H / 2 + layout.fontPx * 0.62);
+    ctx.fillText(SUBTITULO, W / 2 + wordW / 2, H / 2 + layout.fontPx * 0.62 - subeMovil());
     if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
     ctx.textAlign = "center";
     ctx.globalAlpha = 1;
@@ -1899,18 +1997,28 @@ function pickAt(x, y) {
   for (const c of capas) {
     for (const n of c.g.nodes) {
       const q = project(n, c.ang, c.xs, c.yOff, c.esc, c.xOff);
-      const r = 8.5 * q.s * n.imp + 14;
+      // el blanco táctil es más grande que el visual: un dedo no apunta como
+      // un cursor, y 14px de margen dejan un objetivo por debajo del mínimo
+      const r = 8.5 * q.s * n.imp + (ES_MOVIL ? 26 : 14);
       if ((x - q.x) ** 2 + (y - q.y) ** 2 < r * r) return { tipo: c.tipo, label: n.label };
     }
   }
   return null;
 }
 
-window.addEventListener("resize", resize);
+/* Girar la constelación con el dedo.
+
+   En escritorio el arrastre mueve los dos ejes. En táctil sólo el horizontal:
+   el vertical es el scroll que gobierna el recorrido y no se le puede quitar.
+   El lienzo declara touch-action:pan-y, así que el navegador se queda con el
+   gesto vertical y nos entrega el horizontal; cuando decide quedárselo, lo
+   avisa con pointercancel y hay que soltar el arrastre ahí mismo. */
+let soloYaw = false;
+
 window.addEventListener("pointermove", (ev) => {
   if (dragging) {
     dragYaw += (ev.clientX - lastMX) * 0.005;
-    dragPitch += (ev.clientY - lastMY) * 0.004;
+    if (!soloYaw) dragPitch += (ev.clientY - lastMY) * 0.004;
     dragMoved += Math.abs(ev.clientX - lastMX) + Math.abs(ev.clientY - lastMY);
     rotIdle = 0;
   }
@@ -1921,13 +2029,21 @@ window.addEventListener("pointerout", (ev) => {
   if (!ev.relatedTarget) { mx = -1e4; my = -1e4; }
 });
 canvas.addEventListener("pointerdown", (ev) => {
-  if (ev.pointerType !== "mouse") return; // en tactil, el gesto es scroll
   dragging = true; dragMoved = 0;
+  soloYaw = ev.pointerType !== "mouse";
   lastMX = ev.clientX; lastMY = ev.clientY;
 });
-window.addEventListener("pointerup", () => { dragging = false; });
+window.addEventListener("pointerup", (ev) => {
+  dragging = false;
+  // un dedo no se queda encima de nada al levantarse: sin borrar la posición,
+  // el último nodo tocado seguiría resaltado para siempre
+  if (ev.pointerType && ev.pointerType !== "mouse") { mx = -1e4; my = -1e4; }
+});
+window.addEventListener("pointercancel", () => { dragging = false; });
 canvas.addEventListener("click", (ev) => {
-  if (dragMoved > 6) { dragMoved = 0; return; }
+  // un dedo nunca queda tan quieto como un cursor: con el umbral de 6px un
+  // toque normal se confundía con arrastre y no abría nada
+  if (dragMoved > (ES_MOVIL ? 14 : 6)) { dragMoved = 0; return; }
   const h = hover || pickAt(ev.clientX, ev.clientY);
   if (h) abrirPanel(h.tipo, h.label);
 });
@@ -1940,6 +2056,7 @@ const panelTitulo = document.getElementById("panelTitulo");
 const panelBusqueda = document.getElementById("panelBusqueda");
 const panelMeta = document.getElementById("panelMeta");
 const panelLista = document.getElementById("panelLista");
+const panelDesc = document.getElementById("panelDesc");
 let panelEstado = null; // { tipo: "tema" | "seccion" | "indice", valor }
 
 const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -2002,12 +2119,21 @@ function abrirPanel(tipo, valor, desdeIndice = false) {
   panelCeja.textContent = tipo === "indice" ? "Índice de temas"
     : tipo === "tema" ? "Tema" : "Sección de la revista";
   panelTitulo.textContent = tipo === "indice" ? "Todos los temas" : valor;
+  // En escritorio la descripción de cada sección vive en una ficha que
+  // aparece al pasar el cursor. En un teléfono no hay cursor y esa ficha no
+  // aparecería nunca, así que ahí la descripción entra bajo el título.
+  const desc = ES_MOVIL && tipo === "seccion"
+    ? (SECTIONS.find((x) => x.label === valor) || {}).desc : null;
+  panelDesc.textContent = desc ? TR(desc) : "";
+  panelDesc.hidden = !desc;
   panelBusqueda.value = "";
   panelBusqueda.placeholder = tipo === "indice" ? "Buscar un tema" : "Buscar por título o autor";
   pintarPanel();
   document.body.classList.add("panel-abierto");
   panel.setAttribute("aria-hidden", "false");
-  panelBusqueda.focus({ preventScroll: true });
+  // en un teléfono enfocar el buscador levanta el teclado y tapa media
+  // pantalla sin que nadie lo haya pedido: aquí el foco se ofrece, no se toma
+  if (!ES_MOVIL) panelBusqueda.focus({ preventScroll: true });
 }
 
 function cerrarPanel() {
@@ -2404,7 +2530,23 @@ window.__alCambiarIdioma = () => {
   if (sec) sec.nodes.forEach((n) => { if (n.label0) { n.label = TR(n.label0); n.desc = TR(n.desc0); } });
 };
 
-/* ------- arranque ------- */
+/* ------- arranque -------
+   El motor corre en las dos versiones: el teléfono recibe el mismo recorrido.
+   Lo único distinto es a qué resize hacerle caso. En un teléfono la barra de
+   URL entra y sale al desplazarse y cada cambio de alto dispara un resize; si
+   eso rehiciera el muestreo de la palabra, habría un parpadeo por gesto. Sólo
+   importa que cambie el ANCHO, que es lo que pasa al girar el aparato. */
+
+if (ES_MOVIL) {
+  let anchoPrevio = innerWidth;
+  window.addEventListener("resize", () => {
+    if (innerWidth === anchoPrevio) return;
+    anchoPrevio = innerWidth;
+    resize();
+  });
+} else {
+  window.addEventListener("resize", resize);
+}
 
 resize();
 uSmooth = scrollU(); // si la pagina carga a mitad del recorrido, sin carreras
@@ -2447,6 +2589,8 @@ window.__qa = {
   nav.querySelectorAll(".menu-panel a").forEach((a) => a.addEventListener("click", () => nav.classList.remove("abierto")));
 })();
 </script>
+<script src="movil.js?v=3" defer></script>
+<script src="barra.js?v=2" defer></script>
 <script src="idiomas.js?v=5" defer></script>
 </body>
 </html>

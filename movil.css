@@ -1,0 +1,583 @@
+/* Vértices · versión de teléfono.
+
+   Todo lo de aquí vive detrás de html[data-disp="movil"], que pone
+   dispositivo.js antes de pintar. En escritorio este archivo no aplica una
+   sola regla, así que puede cargarse siempre sin riesgo.
+
+   La idea no es encoger la versión de escritorio: es otra pieza. El recorrido
+   cinematográfico (7 pantallas de scroll gobernando un motor de partículas)
+   se apaga por completo y en su lugar el teléfono recibe una portada corta,
+   los 27 temas como fichas que se tocan, las 8 secciones como acordeón —con
+   las descripciones que la versión de escritorio sólo enseña al pasar el
+   cursor, y que en teléfono se perdían— y una barra de pestañas fija abajo,
+   al alcance del pulgar.
+
+   Los tokens se redefinen con prefijo --m- porque las páginas del sitio no
+   comparten nombres de variable (la portada llama --crema a la tinta y
+   --negro al fondo; las satélites usan --tinta y --fondo). */
+
+html[data-disp="movil"]{
+  --m-fondo:#E7DECB;
+  --m-tinta:#2d232e;
+  --m-hueso:#433947;
+  --m-texto:#4d4252;
+  --m-gris:#776d80;
+  --m-indigo:#4d4dfa;
+  --m-indigo-claro:#5e5dc7;
+  --m-coral:#fd6343;
+  --m-ambar:#c07515;
+  --m-linea:rgba(45,35,46,.18);
+  --m-linea-fuerte:rgba(45,35,46,.42);
+  --m-vidrio:rgba(252,248,240,.62);
+  --m-hoja:rgba(252,248,240,.98);
+  --m-f-titulo:"Neue Montreal",Arial,"Helvetica Neue",sans-serif;
+  --m-f-ui:"Neue Montreal",Arial,"Helvetica Neue",sans-serif;
+  --m-f-sub:"Garet",Arial,"Helvetica Neue",sans-serif;
+  /* alto de la barra de pestañas + el borde inferior del iPhone */
+  --m-barra:calc(66px + env(safe-area-inset-bottom, 0px));
+  --m-lado:20px;
+  -webkit-text-size-adjust:100%;
+}
+
+html[data-disp="movil"] body{
+  overflow-x:hidden;
+  /* deja aire bajo la barra de pestañas para que no tape el final del pie */
+  padding-bottom:var(--m-barra);
+}
+
+/* ------------------------------------------------------------------ *
+   1 · el recorrido, también en el teléfono
+ * ------------------------------------------------------------------ */
+
+/* Aquí ya no se apaga nada. El lienzo, las cuatro capas, el velo, el
+   espaciador de 680vh y el riel funcionan igual que en escritorio; lo que
+   sigue sólo los reacomoda para una pantalla angosta y alta.
+
+   La única pieza que se retira es la ficha flotante de las secciones: vive
+   del hover, que en un teléfono no existe. Su descripción no se pierde,
+   se muda a la cabecera de la hoja de artículos (ver index.html). */
+
+html[data-disp="movil"] #fichaSeccion{ display:none !important; }
+
+/* el riel se va abajo y deja de ocupar el margen; el hueco al final del
+   documento ya no hace falta porque en el portal el riel se esconde solo */
+html[data-disp="movil"] body{ padding-bottom:0; }
+
+/* la descripción que la ficha flotante enseñaba al pasar el cursor, ahora
+   bajo el título de la hoja de artículos */
+html[data-disp="movil"] .panel-desc{
+  margin:8px 0 0; font-size:13px; line-height:1.55; color:var(--m-texto);
+}
+
+/* ------------------------------------------------------------------ *
+   2 · barra superior
+ * ------------------------------------------------------------------ */
+
+html[data-disp="movil"] .marco{
+  position:fixed; z-index:50;
+  top:calc(8px + env(safe-area-inset-top, 0px)); left:12px; right:12px;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:8px 9px 8px 16px;
+  /* el material (el vidrio) se define una sola vez, en la hoja de cada
+     página; aquí sólo cambia la caja */
+}
+html[data-disp="movil"] .marca{ gap:9px; }
+html[data-disp="movil"] .emblema{ width:23px; height:23px; }
+/* la marca escrita sí cabe: la versión de escritorio la esconde bajo 560px
+   porque compite con cuatro botones, y aquí sólo hay dos */
+html[data-disp="movil"] .marca span{
+  display:inline; font-size:12px; letter-spacing:.28em;
+}
+html[data-disp="movil"] .marco nav{ gap:8px; }
+
+/* en la barra sólo sobreviven el idioma y el menú; el resto de enlaces
+   vive en el panel del menú y en la barra de pestañas de abajo */
+html[data-disp="movil"] .marco nav > .enlace-bar,
+html[data-disp="movil"] .marco nav > .boton-bar,
+html[data-disp="movil"] .marco nav > .boton--lleno{ display:none; }
+html[data-disp="movil"] .menu-panel .solo-angosto{ display:block; }
+
+html[data-disp="movil"] .menu-boton{ width:40px; height:40px; }
+html[data-disp="movil"] .menu-panel{
+  /* .marco lleva backdrop-filter, y eso lo convierte en el bloque contenedor
+     de sus descendientes fijos: este panel NO se posiciona respecto a la
+     pantalla sino respecto a la barra. En vez de pelearse con eso, se
+     aprovecha —cuelga de ella y se alinea sola, aunque la barra se mueva. */
+  position:fixed; top:calc(100% + 10px);
+  left:0; right:0; min-width:0;
+  max-height:calc(100vh - 90px - var(--m-barra));
+  max-height:calc(100dvh - 90px - var(--m-barra)); overflow-y:auto;
+  border-radius:18px; padding:8px;
+}
+html[data-disp="movil"] .menu-panel a.enlace{
+  padding:15px 16px; font-size:12.5px; border-radius:12px;
+}
+
+/* el selector de idioma que monta idiomas.js */
+html[data-disp="movil"] #selIdiomaWrap{ padding:9px 11px; }
+
+/* ------------------------------------------------------------------ *
+   3 · las capas del recorrido, en vertical
+ * ------------------------------------------------------------------ */
+
+/* Las cuatro capas son superposiciones fijas sobre el lienzo, con sus
+   bloques en posición absoluta. En escritorio se reparten los márgenes: el
+   texto a un lado, la constelación al otro. En un teléfono no hay "al
+   lado", así que el texto se va arriba, el motor se queda con el centro y
+   la mitad de abajo —donde el pulgar no lo tapa— y lo que cerraba la
+   pantalla (el pie del hero, el carrusel) se apoya sobre la barra. */
+
+/* --- tipografía compartida de las capas --- */
+html[data-disp="movil"] .capa .ceja{
+  margin:0 0 8px; font-size:11px; letter-spacing:.26em;
+}
+html[data-disp="movil"] .capa .titulo{
+  margin:0 0 10px; font-size:clamp(26px, 7.6vw, 34px); line-height:1.06;
+}
+html[data-disp="movil"] .capa .bajada{
+  margin:0 0 14px; max-width:none; font-size:14px; line-height:1.55;
+}
+
+/* --- capa 1: portada --- */
+/* en escritorio la etiqueta institucional y el bloque de edición van a los
+   dos extremos de una fila; aquí se apilan y se apoyan sobre la barra */
+html[data-disp="movil"] .hero-abajo{
+  left:var(--m-lado); right:var(--m-lado);
+  bottom:calc(var(--m-barra) + 14px);
+  flex-direction:column; align-items:flex-start; gap:15px;
+}
+html[data-disp="movil"] .hero-etq{ font-size:12px; line-height:1.6; }
+html[data-disp="movil"] .hero-etq span{ font-size:11px; }
+html[data-disp="movil"] .hero-edicion{ text-align:left; }
+html[data-disp="movil"] .hero-edicion p{ margin-bottom:12px; }
+/* la pista de scroll vive a 110px del borde, que es justo donde ahora
+   empieza el bloque apilado: se sube por encima de él */
+html[data-disp="movil"] .pista{
+  bottom:calc(var(--m-barra) + 150px);
+  text-align:center; /* cabe en dos renglones y el segundo se iba a la izquierda */
+}
+
+/* --- capa 2: los 27 temas --- */
+/* la tarjeta de vidrio se queda: separa el texto de la constelación que
+   late detrás, que sin ella se leería sobre los nodos */
+html[data-disp="movil"] .temas-bloque{
+  top:calc(80px + env(safe-area-inset-top, 0px));
+  left:var(--m-lado); right:var(--m-lado); max-width:none;
+  padding:16px 17px 14px; border-radius:15px;
+}
+html[data-disp="movil"] .temas-bloque .boton{
+  display:block; width:100%; text-align:center; padding:13px 18px; font-size:11.5px;
+}
+html[data-disp="movil"] .temas-pie{
+  right:var(--m-lado); left:var(--m-lado);
+  bottom:calc(var(--m-barra) + 12px);
+  text-align:center; font-size:10px; letter-spacing:.2em;
+}
+
+/* --- capa 3: las 8 secciones --- */
+html[data-disp="movil"] .secciones-bloque{
+  top:calc(82px + env(safe-area-inset-top, 0px));
+  left:var(--m-lado); right:var(--m-lado);
+  width:auto; transform:none;
+}
+
+/* el carrusel de destacados se apoya sobre la barra y las tarjetas se
+   estrechan para que se asome la siguiente: así se nota que hay más */
+html[data-disp="movil"] .carrusel-zona{
+  left:0; right:0; transform:none; width:auto;
+  bottom:calc(var(--m-barra) + 10px);
+  padding:0 var(--m-lado);
+}
+html[data-disp="movil"] .carrusel-cab{ margin-bottom:9px; }
+html[data-disp="movil"] .flechas{ display:none; }
+html[data-disp="movil"] .carrusel{
+  gap:11px; margin:0 calc(var(--m-lado) * -1); padding:0 var(--m-lado) 4px;
+  -webkit-overflow-scrolling:touch;
+}
+html[data-disp="movil"] .tarjeta{
+  flex-basis:min(252px, 76vw); padding:15px 17px 14px; border-radius:13px;
+}
+html[data-disp="movil"] .tarjeta h4{ font-size:15px; }
+html[data-disp="movil"] .tarjeta p{ font-size:11.5px; }
+
+/* --- capa 4: cierre --- */
+html[data-disp="movil"] .cierre-bloque{
+  left:var(--m-lado); right:var(--m-lado);
+  bottom:calc(var(--m-barra) + 26px);
+  width:auto; transform:none;
+}
+html[data-disp="movil"] .cierre-bloque .titulo{ font-size:clamp(25px, 7.2vw, 32px); }
+html[data-disp="movil"] .cierre-acciones{ flex-direction:column; gap:10px; }
+html[data-disp="movil"] .cierre-acciones .boton{
+  width:100%; text-align:center; padding:15px 20px;
+}
+
+/* ------------------------------------------------------------------ *
+   4 · portal editorial: convocatoria y envío
+ * ------------------------------------------------------------------ */
+
+html[data-disp="movil"] .portal-seccion{
+  width:auto; margin:0; padding:44px var(--m-lado) 8px;
+  scroll-margin-top:70px;
+}
+html[data-disp="movil"] .portal-intro{ text-align:left; padding-top:44px; }
+html[data-disp="movil"] .portal-intro .titulo{
+  font:500 clamp(28px,8vw,36px)/1.08 var(--m-f-titulo); margin-bottom:14px;
+}
+html[data-disp="movil"] .portal-intro .bajada{
+  margin:0 0 30px; max-width:none; font-size:14.5px; line-height:1.65;
+}
+
+/* las tres cifras, en fila y sin apretarse */
+html[data-disp="movil"] .cifras{
+  justify-content:space-between; gap:12px; margin-bottom:34px;
+  padding:20px 18px; border:1px solid var(--m-linea); border-radius:16px;
+  background:var(--m-vidrio); flex-wrap:nowrap;
+}
+html[data-disp="movil"] .cifras li{ flex:1; text-align:center; }
+html[data-disp="movil"] .cifras strong{ font-size:27px; margin-bottom:4px; }
+html[data-disp="movil"] .cifras span{
+  display:block; font-size:9px; line-height:1.4; letter-spacing:.1em;
+}
+
+/* los 4 pasos: uno bajo otro, con el número a un lado */
+html[data-disp="movil"] .pasos{ gap:10px; }
+html[data-disp="movil"] .pasos li{
+  display:grid; grid-template-columns:auto 1fr; gap:0 16px; align-items:start;
+  padding:18px 20px; border-radius:14px;
+}
+html[data-disp="movil"] .pasos li::before{
+  grid-row:1 / span 2; font-size:20px; margin:0; padding-top:1px;
+}
+html[data-disp="movil"] .pasos h3{ margin:0 0 5px; font-size:15px; }
+html[data-disp="movil"] .pasos p{ font-size:13.5px; }
+
+/* --- el asistente de envío --- */
+html[data-disp="movil"] .tablero{ gap:18px; }
+html[data-disp="movil"] .panel-envio{ padding:24px 18px 22px; border-radius:16px; }
+html[data-disp="movil"] .panel-envio h2{ margin-bottom:20px; font-size:25px; }
+
+/* los cuatro pasos no caben con su nombre: se quedan los números y sólo el
+   paso activo dice cómo se llama. font-size:0 apaga el texto suelto del <li>
+   sin tener que tocar el marcado */
+html[data-disp="movil"] .wiz-pasos{
+  gap:6px; margin-bottom:24px; padding-bottom:16px; flex-wrap:nowrap;
+}
+html[data-disp="movil"] .wiz-pasos li{
+  font-size:0; padding:5px; gap:0; letter-spacing:0;
+}
+html[data-disp="movil"] .wiz-pasos li i{ font-size:10.5px; width:26px; height:26px; }
+html[data-disp="movil"] .wiz-pasos li.activo{
+  font-size:10.5px; letter-spacing:.1em; gap:8px; padding:5px 12px 5px 5px;
+  background:rgba(45,35,46,.05);
+}
+
+html[data-disp="movil"] fieldset.paso legend{ font-size:14.5px; margin-bottom:16px; }
+html[data-disp="movil"] .campo{ margin-bottom:16px; }
+html[data-disp="movil"] .fila2{ grid-template-columns:1fr; gap:16px; }
+
+/* 16px es el mínimo: por debajo, Safari de iOS hace zoom al enfocar el campo
+   y deja la página descuadrada */
+html[data-disp="movil"] input[type=text],
+html[data-disp="movil"] input[type=email],
+html[data-disp="movil"] select,
+html[data-disp="movil"] textarea,
+html[data-disp="movil"] .estado-form input,
+html[data-disp="movil"] .boletin input,
+html[data-disp="movil"] #panelBusqueda{
+  font-size:16px; padding:13px 15px; border-radius:12px;
+}
+html[data-disp="movil"] textarea{ min-height:150px; }
+html[data-disp="movil"] label{ font-size:10.5px; margin-bottom:6px; }
+
+/* el enlace "Consulta los detalles" que acompaña a la etiqueta de sección
+   mide 12px de alto: legible con el ratón, imposible con el pulgar. Aquí se
+   le da área de toque sin moverlo de sitio ni agrandar el texto. */
+html[data-disp="movil"] .label-con-ayuda{ gap:10px; flex-wrap:wrap; }
+html[data-disp="movil"] .label-con-ayuda .link-detalles{
+  padding:8px 0; margin:-8px 0 -7px; font-size:11px;
+}
+
+html[data-disp="movil"] .zona-archivo{ padding:30px 18px; border-radius:14px; }
+html[data-disp="movil"] #listaArchivos li{ padding:12px 14px; font-size:13px; }
+html[data-disp="movil"] #listaArchivos button{ padding:6px 8px; font-size:16px; }
+
+html[data-disp="movil"] .decl{ gap:13px; margin-bottom:16px; }
+html[data-disp="movil"] .decl input{ width:20px; height:20px; margin-top:2px; }
+html[data-disp="movil"] .decl span{ font-size:13.5px; }
+
+/* Atrás y Continuar a lo ancho: primero el que avanza */
+html[data-disp="movil"] .wiz-acciones{
+  flex-direction:column-reverse; align-items:stretch; gap:10px;
+  margin-top:24px; padding-top:20px;
+}
+html[data-disp="movil"] .wiz-acciones .boton{
+  width:100%; text-align:center; padding:16px 20px;
+}
+
+html[data-disp="movil"] #confirmacion h3{ font-size:23px; }
+html[data-disp="movil"] #confirmacion dl{
+  grid-template-columns:1fr; gap:3px 0; padding:16px 18px;
+}
+html[data-disp="movil"] #confirmacion dt{ padding-top:10px; }
+html[data-disp="movil"] #confirmacion dt:first-child{ padding-top:0; }
+
+html[data-disp="movil"] .lateral > div{ padding:22px 18px; margin-bottom:14px; border-radius:16px; }
+html[data-disp="movil"] .lateral h3{ font-size:16px; margin-bottom:14px; }
+html[data-disp="movil"] .lateral summary{ padding:16px 2px; font-size:14px; }
+
+html[data-disp="movil"] .estado-bloque{ padding:22px 18px; border-radius:16px; }
+html[data-disp="movil"] .estado-form{ grid-template-columns:1fr; gap:10px; }
+html[data-disp="movil"] .estado-form .boton{ width:100%; padding:15px 20px; }
+html[data-disp="movil"] .estado-res dl{ grid-template-columns:1fr; gap:3px 0; }
+html[data-disp="movil"] .estado-res dt{ padding-top:9px; }
+
+/* ------------------------------------------------------------------ *
+   5 · pie de página
+ * ------------------------------------------------------------------ */
+
+html[data-disp="movil"] footer.pie{ margin-top:52px; }
+html[data-disp="movil"] .pie-int{ width:auto; padding:38px var(--m-lado) 26px; }
+html[data-disp="movil"] .pie-rejilla{ grid-template-columns:1fr; gap:30px; margin-bottom:34px; }
+html[data-disp="movil"] .pie-marca p{ max-width:none; font-size:13.5px; }
+html[data-disp="movil"] .pie ul a{ display:inline-block; padding:5px 0; font-size:14px; }
+html[data-disp="movil"] .boletin form{ flex-direction:column; gap:10px; }
+html[data-disp="movil"] .boletin .boton{ width:100%; padding:15px 20px; }
+html[data-disp="movil"] .pie-legal{ flex-direction:column; gap:12px; font-size:11.5px; }
+
+/* la salida de emergencia: quien quiera el recorrido completo en el teléfono
+   puede pedirlo, y volver */
+html[data-disp="movil"] .m-cambia-vista{
+  display:inline-block; margin-top:4px; padding:10px 0;
+  background:none; border:0; cursor:pointer;
+  font:500 11.5px var(--m-f-ui); letter-spacing:.14em; text-transform:uppercase;
+  color:var(--m-gris); text-decoration:underline; text-underline-offset:4px;
+}
+
+/* ------------------------------------------------------------------ *
+   6 · panel de artículos: en teléfono es una hoja que sube
+ * ------------------------------------------------------------------ */
+
+html[data-disp="movil"] #panel{
+  top:auto; right:0; left:0; bottom:0;
+  width:auto; height:88vh; max-height:88vh;
+  height:88dvh; max-height:88dvh;
+  border-left:0; border-top:1px solid var(--m-linea);
+  border-radius:22px 22px 0 0;
+  background:var(--m-hoja);
+  box-shadow:0 -14px 44px rgba(45,35,46,.2);
+  transform:translateY(102%);
+  transition:transform .38s cubic-bezier(.32,.72,.28,1);
+  padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+html[data-disp="movil"] body.panel-abierto #panel{ transform:translateY(0); }
+/* el asa: señal de que la hoja se puede cerrar */
+html[data-disp="movil"] #panel::before{
+  content:""; position:absolute; top:9px; left:50%; transform:translateX(-50%);
+  width:40px; height:4px; border-radius:99px; background:var(--m-linea-fuerte);
+}
+html[data-disp="movil"] .panel-cab{ padding:26px 20px 14px; }
+html[data-disp="movil"] .panel-cab h3{ font-size:21px; }
+html[data-disp="movil"] .cierre{ width:40px; height:40px; }
+html[data-disp="movil"] .panel-busca{ padding:0 20px 4px; }
+html[data-disp="movil"] .panel-meta{ margin:10px 20px 6px; }
+html[data-disp="movil"] #panelLista{
+  padding:4px 20px 16px; overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+html[data-disp="movil"] .art{ padding:15px 0; }
+html[data-disp="movil"] .art strong{ font-size:15px; }
+html[data-disp="movil"] .ind{ padding:16px 2px; font-size:14.5px; }
+html[data-disp="movil"] .panel-pie{ padding:14px 20px 18px; }
+html[data-disp="movil"] .panel-pie .boton{ padding:16px 20px; }
+/* con la hoja arriba, el fondo no se mueve */
+html[data-disp="movil"] body.panel-abierto{ overflow:hidden; }
+
+/* ------------------------------------------------------------------ *
+   7 · el riel de progreso, convertido en barra inferior
+ * ------------------------------------------------------------------ */
+
+/* En escritorio el riel es una columna discreta en el margen derecho, con
+   los nombres escondidos hasta que el cursor pasa. En un teléfono no hay
+   margen que gastar ni cursor que pase, así que se acuesta abajo, se
+   reparte en cuatro y enseña siempre los nombres. Es el mismo marcado y
+   los mismos destinos: no se construye una barra nueva. */
+
+html[data-disp="movil"] .riel{
+  /* la hoja de escritorio esconde el riel bajo 980px (es un adorno de
+     márgenes anchos). En teléfono no se esconde: se reencarna en la barra,
+     así que hay que devolverle el display explícitamente. */
+  display:flex;
+  left:12px; right:12px; top:auto; transform:none;
+  bottom:calc(10px + env(safe-area-inset-bottom, 0px));
+  z-index:60; flex-direction:row; align-items:stretch; gap:0;
+  /* la cápsula recorta los botones: sin esto, el área táctil de los de los
+     extremos se saldría por las esquinas redondeadas */
+  border-radius:999px; overflow:hidden;
+  /* el mismo vidrio que la barra de arriba, del revés: el filo iluminado va
+     abajo y la sombra hacia arriba. Conviven en la misma pantalla, y con una
+     de vidrio y otra de pintura el desajuste salta a la vista. */
+  background:linear-gradient(rgba(231,222,203,.76), rgba(238,231,215,.86));
+  backdrop-filter:blur(30px) saturate(180%);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);
+  box-shadow:
+    inset 0 -1px 0 rgba(255,255,255,.62),
+    inset 0 0 0 1px rgba(255,255,255,.26),
+    0 12px 32px -14px rgba(45,35,46,.34),
+    0 3px 10px -6px rgba(45,35,46,.22);
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  html[data-disp="movil"] .riel{
+    background:linear-gradient(rgba(231,222,203,.9), rgba(231,222,203,.97));
+  }
+}
+html[data-disp="movil"] .riel button{
+  flex:1; flex-direction:column; align-items:center; gap:6px;
+  padding:10px 4px 9px; color:var(--m-gris);
+  font:500 9.5px var(--m-f-ui); letter-spacing:.11em;
+  -webkit-tap-highlight-color:transparent;
+}
+/* En escritorio el punto es un lunar de 7px que sólo marca posición. Abajo,
+   como pestaña, un punto no dice nada: movil.js le mete un icono dentro y el
+   lunar pasa a ser su caja. Por eso el activo deja de marcarse rellenando el
+   punto —rellenaría el icono entero— y se marca por color, como una pestaña. */
+html[data-disp="movil"] .riel button i{
+  display:block; width:21px; height:21px;
+  border:0; border-radius:0; background:none; transform:none;
+}
+html[data-disp="movil"] .riel button i svg{
+  display:block; width:21px; height:21px;
+  fill:none; stroke:currentColor; stroke-width:1.5;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+html[data-disp="movil"] .riel button span{ opacity:1; }
+html[data-disp="movil"] .riel button.activo,
+html[data-disp="movil"] .riel button.activo span{ color:var(--m-tinta); }
+html[data-disp="movil"] .riel button.activo i{
+  background:none; border:0; transform:none;
+}
+/* el último lleva a publicar: es la acción de la barra, no una parada más */
+html[data-disp="movil"] .riel button.riel--cta{ color:var(--m-coral); }
+
+/* con la hoja de artículos arriba, la barra estorba */
+html[data-disp="movil"] body.panel-abierto .riel{
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+
+/* ------------------------------------------------------------------ *
+   7b · la versión de teléfono no es un solo tamaño
+ * ------------------------------------------------------------------ */
+
+/* Teléfono acostado: 390px de alto. El recorrido cabe —es scroll, no
+   maqueta— pero los bloques de texto de las capas se comen la pantalla y
+   dejan al motor sin sitio. Se achican y se pegan a los bordes. */
+@media (max-height:560px){
+  html[data-disp="movil"] .capa .titulo{ font-size:clamp(21px, 5.4vh, 27px); margin-bottom:7px; }
+  html[data-disp="movil"] .capa .ceja{ margin-bottom:5px; }
+  html[data-disp="movil"] .capa .bajada{ font-size:12.5px; margin-bottom:9px; }
+  html[data-disp="movil"] .temas-bloque{ top:52px; padding:11px 13px 10px; }
+  html[data-disp="movil"] .secciones-bloque{ top:52px; }
+  html[data-disp="movil"] .hero-abajo{ flex-direction:row; align-items:flex-end; gap:18px; }
+  html[data-disp="movil"] .cierre-acciones{ flex-direction:row; }
+  html[data-disp="movil"] .cierre-acciones .boton{ width:auto; }
+  html[data-disp="movil"] .carrusel-zona{ display:none; }
+  html[data-disp="movil"] .pista{ display:none; }
+}
+
+/* Pantallas anchas que siguen siendo táctiles (tableta en vertical): las
+   mismas piezas, pero aprovechando el ancho en vez de estirar renglones de
+   90 caracteres. */
+@media (min-width:600px){
+  html[data-disp="movil"]{ --m-lado:34px; }
+  html[data-disp="movil"] .portal-seccion{
+    max-width:760px; margin-left:auto; margin-right:auto;
+  }
+  html[data-disp="movil"] .temas-bloque{ left:auto; width:min(430px, 46vw); }
+  html[data-disp="movil"] .secciones-bloque,
+  html[data-disp="movil"] .cierre-bloque{
+    left:50%; right:auto; width:min(680px, 88vw); transform:translateX(-50%);
+  }
+  html[data-disp="movil"] .portal-intro .bajada{ max-width:62ch; }
+  html[data-disp="movil"] .fila2{ grid-template-columns:1fr 1fr; }
+  html[data-disp="movil"] .cierre-acciones{ flex-direction:row; justify-content:center; }
+  html[data-disp="movil"] .cierre-acciones .boton{ width:auto; }
+  html[data-disp="movil"] .wiz-acciones{
+    flex-direction:row; justify-content:space-between; align-items:center;
+  }
+  html[data-disp="movil"] .wiz-acciones .boton{ width:auto; }
+  /* la hoja de artículos no necesita ocupar todo el ancho de una tableta */
+  html[data-disp="movil"] #panel{
+    left:auto; width:min(520px, 100vw); border-top-right-radius:0;
+    border-left:1px solid var(--m-linea);
+  }
+  html[data-disp="movil"] #panel::before{ left:auto; right:calc(50% - 20px); }
+}
+
+/* ------------------------------------------------------------------ *
+   8 · páginas satélite (¿Quiénes somos?, Lineamientos, equipo)
+ * ------------------------------------------------------------------ */
+
+/* main:not([id]) apunta sólo a las satélites: los dos <main> de la portada
+   llevan id (#movil y #portal) y traen sus propias medidas */
+html[data-disp="movil"] main:not([id]){
+  max-width:none;
+  padding:calc(76px + env(safe-area-inset-top, 0px)) var(--m-lado) 70px;
+}
+
+html[data-disp="movil"] .hero-qs{ padding:5vh 0 3vh; }
+html[data-disp="movil"] main:not([id]) > .ceja,
+html[data-disp="movil"] .hero-cont .ceja{ font-size:12px; letter-spacing:.24em; }
+html[data-disp="movil"] main:not([id]) h1{ font-size:clamp(32px,9vw,42px); line-height:1.05; }
+html[data-disp="movil"] main:not([id]) .entrada{ max-width:none; font-size:16px; }
+html[data-disp="movil"] main:not([id]) section{ margin-top:48px; scroll-margin-top:70px; }
+html[data-disp="movil"] main:not([id]) h2{ font-size:clamp(22px,6.4vw,27px); }
+html[data-disp="movil"] main:not([id]) .texto{ max-width:none; }
+
+/* tarjetas de valores y de niveles: una por fila, que a dos quedan ilegibles */
+html[data-disp="movil"] .valores,
+html[data-disp="movil"] .niveles{ grid-template-columns:1fr; gap:12px; }
+html[data-disp="movil"] .valor,
+html[data-disp="movil"] .nivel{ padding:20px 18px; }
+
+/* listas de definición: etiqueta arriba, texto abajo */
+html[data-disp="movil"] .generales li,
+html[data-disp="movil"] .integridad li{ grid-template-columns:1fr; gap:7px; }
+html[data-disp="movil"] .generales p,
+html[data-disp="movil"] .integridad p{ max-width:none; }
+
+/* acordeón de lineamientos */
+html[data-disp="movil"] .acordeon summary{ padding:18px 2px; gap:12px; }
+html[data-disp="movil"] .acordeon summary h3{ font-size:15.5px; }
+/* la etiqueta de nivel no cabe junto al título en pantalla angosta */
+html[data-disp="movil"] .acordeon summary .nivel-etq{ display:none; }
+html[data-disp="movil"] .cuerpo-sec{ padding:2px 2px 24px 22px; }
+html[data-disp="movil"] .cuerpo-sec p{ max-width:none; }
+html[data-disp="movil"] .dos-col{ grid-template-columns:1fr; gap:18px; }
+html[data-disp="movil"] .umbral{ max-width:none; }
+
+/* la matriz resumen se desborda a lo ancho: se desliza con el dedo, y se
+   avisa con una sombra en el borde para que se note que hay más */
+html[data-disp="movil"] .tabla-scroll{
+  margin:0 calc(var(--m-lado) * -1); padding:0 var(--m-lado);
+  -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain;
+  background:
+    linear-gradient(to right, var(--m-fondo) 30%, rgba(231,222,203,0)) left / 26px 100% no-repeat,
+    linear-gradient(to left, var(--m-fondo) 30%, rgba(231,222,203,0)) right / 26px 100% no-repeat;
+}
+html[data-disp="movil"] .matriz{ min-width:520px; font-size:13px; }
+html[data-disp="movil"] .matriz th{ padding:9px 10px 7px; }
+html[data-disp="movil"] .matriz td{ padding:9px 10px; }
+
+/* ojo con el nombre: .cierre es el bloque de cierre de estas páginas, pero
+   en la portada es el BOTÓN de cerrar del panel de artículos. Sin acotarlo a
+   div.cierre, el margen de aquí le caía encima a la ✕ de la hoja. */
+html[data-disp="movil"] div.cierre{
+  margin-top:52px; padding-top:28px; flex-direction:column; align-items:stretch; gap:16px;
+}
+html[data-disp="movil"] div.cierre p{ max-width:none; }
+html[data-disp="movil"] div.cierre .boton{ width:100%; text-align:center; padding:16px 20px; }
+
+/* equipo-ds.html no tiene barra fija: centra su tarjeta y no necesita hueco */
+html[data-disp="movil"] body:not(:has(.marco)) main:not([id]){
+  padding-top:var(--m-lado); padding-bottom:var(--m-lado);
+}
