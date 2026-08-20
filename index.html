@@ -1960,16 +1960,50 @@ function artHTML(a) {
 
 function pintarPanel(filtro = "") {
   const f = norm(filtro.trim());
+
   if (panelEstado.tipo === "indice") {
     const temas = TOPICS.filter((t) => !f || norm(t).includes(f));
-    panelMeta.textContent = TR("{n} de {m} temas").replace("{n}", temas.length).replace("{m}", TOPICS.length);
-    panelLista.innerHTML = temas.map((t) => {
-      const n = articulosDe("tema", t).length;
-      return `<button class="ind" data-tema="${t}"><span>${t}</span><span class="cuenta">Próximamente</span>
-  </button>
-`;
 
+    panelMeta.textContent = TR("{n} de {m} temas")
+      .replace("{n}", temas.length)
+      .replace("{m}", TOPICS.length);
+
+    panelLista.innerHTML = temas.map((t) => {
+      return `
+        <button class="ind" data-tema="${t}">
+          <span>${t}</span>
+          <span class="cuenta">Próximamente</span>
+        </button>
+      `;
+    }).join("");
+
+    return;
   }
+
+  let items = articulosDe(panelEstado.tipo, panelEstado.valor);
+
+  if (f) {
+    items = items.filter((a) =>
+      norm(a.t + " " + a.a).includes(f)
+    );
+  }
+
+  panelMeta.textContent = "Próximamente";
+
+  const regreso = panelEstado.desdeIndice
+    ? `<button class="regresa" id="regresaIndice">← Regresar al índice</button>`
+    : "";
+
+  panelLista.innerHTML = regreso + `
+    <div class="vacio">
+      <p>Próximamente disponibles</p>
+      <p>
+        Los artículos relacionados con este tema aparecerán aquí una vez que
+        la primera edición de Vértices sea publicada.
+      </p>
+    </div>
+  `;
+}
   let items = articulosDe(panelEstado.tipo, panelEstado.valor);
   if (f) items = items.filter((a) => norm(a.t + " " + a.a).includes(f));
   panelMeta.textContent = items.length === 1 ? TR("1 artículo") : TR("{n} artículos").replace("{n}", items.length);
