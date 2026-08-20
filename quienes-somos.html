@@ -48,9 +48,15 @@
   ::selection{ background:var(--indigo); color:var(--beige); }
 
   .marco{
-    position:fixed; top:0; left:0; right:0; z-index:50;
+    /* Flotante, al modo iOS 26: despegada de los tres bordes y en cápsula.
+       El contenido pasa por los lados y por encima en vez de morir contra
+       ella, que es justo cuando el vidrio se lee como material: pegada al
+       borde superior casi nunca tenía nada detrás que enseñar. */
+    position:fixed; z-index:50;
+    top:14px; left:max(16px, 3vw); right:max(16px, 3vw);
+    border-radius:999px;
     display:flex; justify-content:space-between; align-items:center;
-    padding:20px 5vw 22px;
+    padding:12px 18px 12px 26px;
     /* Vidrio. Tres capas hacen el material y ninguna sobra:
        el tinte translúcido deja pasar la imagen; el desenfoque CON saturación
        es lo que hace que el vidrio recoja el color de lo que cruza por debajo
@@ -68,10 +74,14 @@
     background:linear-gradient(rgba(238,231,215,.86), rgba(231,222,203,.76));
     backdrop-filter:blur(30px) saturate(180%);
     -webkit-backdrop-filter:blur(30px) saturate(180%);
+    /* Flotando, la sombra deja de ser una insinuación bajo un borde y pasa
+       a ser lo que la despega del fondo; y el filo iluminado da la vuelta
+       completa, porque ahora se ven los cuatro lados. */
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.62),
-      inset 0 -1px 0 rgba(45,35,46,.07),
-      0 10px 26px -18px rgba(45,35,46,.34);
+      inset 0 1px 0 rgba(255,255,255,.7),
+      inset 0 0 0 1px rgba(255,255,255,.26),
+      0 12px 32px -14px rgba(45,35,46,.34),
+      0 3px 10px -6px rgba(45,35,46,.22);
   }
   /* Sin desenfoque de fondo (Firefox sin la bandera, navegadores viejos) un
      tinte al 46% dejaría cruzar el texto de la página por detrás de la barra.
@@ -84,7 +94,7 @@
 
   /* se esconde al bajar y vuelve al subir; lo gobierna barra.js */
   .marco{ transition:transform .34s cubic-bezier(.32,.72,.28,1); }
-  .marco--fuera{ transform:translateY(-100%); }
+  .marco--fuera{ transform:translateY(calc(-100% - 26px)); }
   @media (prefers-reduced-motion: reduce){
     .marco{ transition:none; }
   }
