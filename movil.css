@@ -46,21 +46,27 @@ html[data-disp="movil"] body{
 }
 
 /* ------------------------------------------------------------------ *
-   1 · apagar la versión de escritorio
+   1 · el recorrido, también en el teléfono
  * ------------------------------------------------------------------ */
 
-/* el lienzo de partículas, sus atmósferas, las cuatro capas fijas del
-   recorrido, el espaciador de 680vh y el riel de progreso no existen aquí.
-   El motor tampoco arranca (index.html lo condiciona a VERTICES_MOVIL), así
-   que esto sólo remata lo que quedó en el marcado. */
-html[data-disp="movil"] canvas#c,
-html[data-disp="movil"] .vineta,
-html[data-disp="movil"] #velo,
-html[data-disp="movil"] .capa,
-html[data-disp="movil"] #recorrido,
-html[data-disp="movil"] #fichaSeccion,
-html[data-disp="movil"] .riel{
-  display:none !important;
+/* Aquí ya no se apaga nada. El lienzo, las cuatro capas, el velo, el
+   espaciador de 680vh y el riel funcionan igual que en escritorio; lo que
+   sigue sólo los reacomoda para una pantalla angosta y alta.
+
+   La única pieza que se retira es la ficha flotante de las secciones: vive
+   del hover, que en un teléfono no existe. Su descripción no se pierde,
+   se muda a la cabecera de la hoja de artículos (ver index.html). */
+
+html[data-disp="movil"] #fichaSeccion{ display:none !important; }
+
+/* el riel se va abajo y deja de ocupar el margen; el hueco al final del
+   documento ya no hace falta porque en el portal el riel se esconde solo */
+html[data-disp="movil"] body{ padding-bottom:0; }
+
+/* la descripción que la ficha flotante enseñaba al pasar el cursor, ahora
+   bajo el título de la hoja de artículos */
+html[data-disp="movil"] .panel-desc{
+  margin:8px 0 0; font-size:13px; line-height:1.55; color:var(--m-texto);
 }
 
 /* ------------------------------------------------------------------ *
@@ -108,196 +114,99 @@ html[data-disp="movil"] .menu-panel a.enlace{
 html[data-disp="movil"] #selIdiomaWrap{ padding:9px 11px; }
 
 /* ------------------------------------------------------------------ *
-   3 · portada de teléfono
+   3 · las capas del recorrido, en vertical
  * ------------------------------------------------------------------ */
 
-html[data-disp="movil"] #movil{
-  position:relative; z-index:20;
-  display:block;
+/* Las cuatro capas son superposiciones fijas sobre el lienzo, con sus
+   bloques en posición absoluta. En escritorio se reparten los márgenes: el
+   texto a un lado, la constelación al otro. En un teléfono no hay "al
+   lado", así que el texto se va arriba, el motor se queda con el centro y
+   la mitad de abajo —donde el pulgar no lo tapa— y lo que cerraba la
+   pantalla (el pie del hero, el carrusel) se apoya sobre la barra. */
+
+/* --- tipografía compartida de las capas --- */
+html[data-disp="movil"] .capa .ceja{
+  margin:0 0 8px; font-size:11px; letter-spacing:.26em;
+}
+html[data-disp="movil"] .capa .titulo{
+  margin:0 0 10px; font-size:clamp(26px, 7.6vw, 34px); line-height:1.06;
+}
+html[data-disp="movil"] .capa .bajada{
+  margin:0 0 14px; max-width:none; font-size:14px; line-height:1.55;
 }
 
-html[data-disp="movil"] .m-seccion{
-  padding:44px var(--m-lado) 8px;
-  scroll-margin-top:72px;
+/* --- capa 1: portada --- */
+/* en escritorio la etiqueta institucional y el bloque de edición van a los
+   dos extremos de una fila; aquí se apilan y se apoyan sobre la barra */
+html[data-disp="movil"] .hero-abajo{
+  left:var(--m-lado); right:var(--m-lado);
+  bottom:calc(var(--m-barra) + 14px);
+  flex-direction:column; align-items:flex-start; gap:15px;
+}
+html[data-disp="movil"] .hero-etq{ font-size:12px; line-height:1.6; }
+html[data-disp="movil"] .hero-etq span{ font-size:11px; }
+html[data-disp="movil"] .hero-edicion{ text-align:left; }
+html[data-disp="movil"] .hero-edicion p{ margin-bottom:12px; }
+/* la pista de scroll vive a 110px del borde, que es justo donde ahora
+   empieza el bloque apilado: se sube por encima de él */
+html[data-disp="movil"] .pista{
+  bottom:calc(var(--m-barra) + 150px);
+  text-align:center; /* cabe en dos renglones y el segundo se iba a la izquierda */
 }
 
-/* --- portada --- */
-html[data-disp="movil"] .m-portada{
-  position:relative;
-  min-height:100vh;
-  min-height:100dvh;
-  display:flex; flex-direction:column; justify-content:center;
-  gap:26px;
-  padding:calc(84px + env(safe-area-inset-top, 0px)) var(--m-lado) 40px;
-  scroll-margin-top:0;
+/* --- capa 2: los 27 temas --- */
+/* la tarjeta de vidrio se queda: separa el texto de la constelación que
+   late detrás, que sin ella se leería sobre los nodos */
+html[data-disp="movil"] .temas-bloque{
+  top:calc(60px + env(safe-area-inset-top, 0px));
+  left:var(--m-lado); right:var(--m-lado); max-width:none;
+  padding:16px 17px 14px; border-radius:15px;
 }
-html[data-disp="movil"] .m-palabra{
-  margin:0;
-  font:500 clamp(52px, 20vw, 96px)/.98 var(--m-f-titulo);
-  letter-spacing:-.03em; color:var(--m-tinta);
+html[data-disp="movil"] .temas-bloque .boton{
+  display:block; width:100%; text-align:center; padding:13px 18px; font-size:11.5px;
 }
-html[data-disp="movil"] .m-lema{
-  margin:0; max-width:22ch;
-  font:400 16px/1.5 var(--m-f-sub); letter-spacing:.02em; color:var(--m-hueso);
-}
-html[data-disp="movil"] .m-regla{
-  width:56px; height:1px; background:var(--m-linea-fuerte);
-  transform-origin:left center;
-}
-/* la etiqueta institucional y el bloque de edición vienen del marcado de
-   escritorio (capa 1), sólo cambian de sitio y de escala */
-html[data-disp="movil"] .m-portada .hero-etq{
-  font-size:12.5px; line-height:1.6; color:var(--m-hueso);
-}
-html[data-disp="movil"] .m-portada .hero-etq span{ font-size:11.5px; }
-html[data-disp="movil"] .m-portada .hero-edicion{ text-align:left; }
-html[data-disp="movil"] .m-portada .hero-edicion p{ margin-bottom:14px; }
-html[data-disp="movil"] .m-acciones{
-  display:flex; flex-direction:column; gap:10px;
-}
-html[data-disp="movil"] .m-acciones .boton{
-  width:100%; text-align:center; padding:16px 20px; font-size:12px;
+html[data-disp="movil"] .temas-pie{
+  right:var(--m-lado); left:var(--m-lado);
+  bottom:calc(var(--m-barra) + 12px);
+  text-align:center; font-size:10px; letter-spacing:.2em;
 }
 
-/* la aparición: el mismo orden de lectura, escalonado. Sin scroll de por
-   medio, así que corre una sola vez al cargar */
-@media (prefers-reduced-motion: no-preference){
-  html[data-disp="movil"] .m-portada > *{
-    opacity:0; animation:m-entra .75s cubic-bezier(.22,.7,.28,1) forwards;
-  }
-  html[data-disp="movil"] .m-portada > :nth-child(1){ animation-delay:.05s; }
-  html[data-disp="movil"] .m-portada > :nth-child(2){ animation-delay:.16s; }
-  html[data-disp="movil"] .m-portada > :nth-child(3){ animation-delay:.26s; }
-  html[data-disp="movil"] .m-portada > :nth-child(4){ animation-delay:.36s; }
-  html[data-disp="movil"] .m-portada > :nth-child(5){ animation-delay:.46s; }
-  html[data-disp="movil"] .m-portada > :nth-child(6){ animation-delay:.56s; }
-  html[data-disp="movil"] .m-regla{ animation-name:m-regla; }
-}
-@keyframes m-entra{
-  from{ opacity:0; transform:translateY(14px); }
-  to{ opacity:1; transform:none; }
-}
-@keyframes m-regla{
-  from{ opacity:0; transform:scaleX(0); }
-  to{ opacity:1; transform:none; }
+/* --- capa 3: las 8 secciones --- */
+html[data-disp="movil"] .secciones-bloque{
+  top:calc(62px + env(safe-area-inset-top, 0px));
+  left:var(--m-lado); right:var(--m-lado);
+  width:auto; transform:none;
 }
 
-/* --- encabezados de sección --- */
-html[data-disp="movil"] .m-seccion .ceja{
-  margin:0 0 10px; font:400 11.5px var(--m-f-sub); letter-spacing:.26em;
-  text-transform:uppercase; color:var(--m-indigo);
+/* el carrusel de destacados se apoya sobre la barra y las tarjetas se
+   estrechan para que se asome la siguiente: así se nota que hay más */
+html[data-disp="movil"] .carrusel-zona{
+  left:0; right:0; transform:none; width:auto;
+  bottom:calc(var(--m-barra) + 10px);
+  padding:0 var(--m-lado);
 }
-html[data-disp="movil"] .m-seccion .titulo{
-  margin:0 0 12px; font:500 clamp(28px,8vw,36px)/1.08 var(--m-f-titulo);
-  color:var(--m-tinta); letter-spacing:-.015em;
+html[data-disp="movil"] .carrusel-cab{ margin-bottom:9px; }
+html[data-disp="movil"] .flechas{ display:none; }
+html[data-disp="movil"] .carrusel{
+  gap:11px; margin:0 calc(var(--m-lado) * -1); padding:0 var(--m-lado) 4px;
+  -webkit-overflow-scrolling:touch;
 }
-html[data-disp="movil"] .m-seccion .bajada{
-  margin:0 0 22px; max-width:none; font-size:14.5px; line-height:1.6;
-  color:var(--m-texto);
+html[data-disp="movil"] .tarjeta{
+  flex-basis:min(252px, 76vw); padding:15px 17px 14px; border-radius:13px;
 }
-/* los bloques vienen de las capas de escritorio, que los posicionaban en
-   absoluto sobre el lienzo; aquí fluyen */
-html[data-disp="movil"] .m-seccion .temas-bloque,
-html[data-disp="movil"] .m-seccion .secciones-bloque,
-html[data-disp="movil"] .m-seccion .cierre-bloque{
-  position:static; transform:none; inset:auto;
-  width:auto; max-width:none; padding:0;
-  border:0; border-radius:0; background:none;
-  backdrop-filter:none; -webkit-backdrop-filter:none;
-  text-align:left;
-}
+html[data-disp="movil"] .tarjeta h4{ font-size:15px; }
+html[data-disp="movil"] .tarjeta p{ font-size:11.5px; }
 
-/* --- 27 temas como fichas --- */
-html[data-disp="movil"] .m-temas{
-  display:grid; grid-template-columns:1fr 1fr; gap:8px;
-  margin:0 0 18px; padding:0; list-style:none;
+/* --- capa 4: cierre --- */
+html[data-disp="movil"] .cierre-bloque{
+  left:var(--m-lado); right:var(--m-lado);
+  bottom:calc(var(--m-barra) + 26px);
+  width:auto; transform:none;
 }
-html[data-disp="movil"] .m-tema{
-  display:flex; flex-direction:column; justify-content:space-between; gap:10px;
-  width:100%; min-height:68px; text-align:left; cursor:pointer;
-  padding:12px 13px; border:1px solid var(--m-linea); border-radius:14px;
-  background:var(--m-vidrio); color:var(--m-tinta);
-  font:500 13px/1.25 var(--m-f-ui); letter-spacing:-.005em;
-  -webkit-tap-highlight-color:transparent;
-  transition:border-color .2s, background .2s, transform .12s;
-}
-html[data-disp="movil"] .m-tema:active{
-  transform:scale(.975); border-color:var(--m-linea-fuerte);
-  background:rgba(252,248,240,.85);
-}
-/* cuántos artículos hay, en cifra: cabe en la ficha y no depende del idioma */
-html[data-disp="movil"] .m-tema .m-cuenta{
-  align-self:flex-end;
-  min-width:22px; padding:2px 7px; border-radius:99px;
-  font:500 10.5px/1.6 var(--m-f-sub); letter-spacing:.02em; text-align:center;
-  color:#f8f2ec; background:var(--m-indigo-claro);
-}
-/* un tema todavía sin artículos se ve, pero se ve distinto: es una invitación */
-html[data-disp="movil"] .m-tema[data-vacio="si"]{ background:rgba(252,248,240,.34); }
-html[data-disp="movil"] .m-tema[data-vacio="si"] .m-cuenta{
-  color:var(--m-gris); background:none;
-  border:1px solid var(--m-linea); padding:1px 6px;
-}
-html[data-disp="movil"] .m-temas + .boton{
-  display:block; width:100%; text-align:center; padding:15px 20px;
-}
-
-/* --- 8 secciones como acordeón --- */
-html[data-disp="movil"] .m-secs{
-  margin:0 0 26px; border-top:1px solid var(--m-linea);
-}
-html[data-disp="movil"] .m-sec{ border-bottom:1px solid var(--m-linea); }
-html[data-disp="movil"] .m-sec > summary{
-  display:flex; align-items:center; gap:13px;
-  padding:17px 2px; cursor:pointer; list-style:none;
-  -webkit-tap-highlight-color:transparent;
-}
-html[data-disp="movil"] .m-sec > summary::-webkit-details-marker{ display:none; }
-html[data-disp="movil"] .m-sec .m-punto{
-  width:9px; height:9px; border-radius:50%; flex:none;
-}
-html[data-disp="movil"] .m-sec .m-nombre{
-  flex:1; font:500 16px/1.3 var(--m-f-titulo); color:var(--m-tinta);
-}
-html[data-disp="movil"] .m-sec .m-flecha{
-  flex:none; width:9px; height:9px; margin-top:-4px;
-  border-right:1.4px solid var(--m-linea-fuerte);
-  border-bottom:1.4px solid var(--m-linea-fuerte);
-  transform:rotate(45deg); transition:transform .25s, margin .25s;
-}
-html[data-disp="movil"] .m-sec[open] .m-flecha{ transform:rotate(225deg); margin-top:4px; }
-html[data-disp="movil"] .m-sec .m-cuerpo{ padding:0 2px 20px 22px; }
-html[data-disp="movil"] .m-sec .m-desc{
-  margin:0 0 16px; font-size:14px; line-height:1.6; color:var(--m-texto);
-}
-html[data-disp="movil"] .m-sec .boton{ width:100%; text-align:center; padding:14px 18px; }
-
-/* --- destacados: el carrusel del marcado de escritorio, a lo ancho --- */
-html[data-disp="movil"] .m-seccion .carrusel-zona{
-  position:static; transform:none; width:auto; margin:0 calc(var(--m-lado) * -1);
-}
-html[data-disp="movil"] .m-seccion .carrusel-cab{
-  padding:0 var(--m-lado); margin-bottom:14px;
-}
-/* las flechas son de ratón: con el dedo se arrastra */
-html[data-disp="movil"] .m-seccion .flechas{ display:none; }
-html[data-disp="movil"] .m-seccion .carrusel{
-  gap:12px; padding:2px var(--m-lado) 6px;
-  scroll-padding-left:var(--m-lado);
-  -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain;
-}
-html[data-disp="movil"] .m-seccion .tarjeta{
-  flex-basis:min(78vw, 300px); padding:18px 20px 16px;
-}
-
-/* --- cierre --- */
-html[data-disp="movil"] .m-cierre{ padding-bottom:34px; }
-html[data-disp="movil"] .m-cierre .titulo{ font-size:clamp(25px,7vw,32px); }
-html[data-disp="movil"] .m-cierre .cierre-acciones{
-  flex-direction:column; gap:10px; justify-content:stretch;
-}
-html[data-disp="movil"] .m-cierre .cierre-acciones .boton{
-  width:100%; text-align:center; padding:16px 20px;
+html[data-disp="movil"] .cierre-bloque .titulo{ font-size:clamp(25px, 7.2vw, 32px); }
+html[data-disp="movil"] .cierre-acciones{ flex-direction:column; gap:10px; }
+html[data-disp="movil"] .cierre-acciones .boton{
+  width:100%; text-align:center; padding:15px 20px;
 }
 
 /* ------------------------------------------------------------------ *
@@ -482,35 +391,47 @@ html[data-disp="movil"] .panel-pie .boton{ padding:16px 20px; }
 html[data-disp="movil"] body.panel-abierto{ overflow:hidden; }
 
 /* ------------------------------------------------------------------ *
-   7 · barra de pestañas
+   7 · el riel de progreso, convertido en barra inferior
  * ------------------------------------------------------------------ */
 
-html[data-disp="movil"] .m-tabs{
-  position:fixed; left:0; right:0; bottom:0; z-index:60;
-  display:grid; grid-template-columns:repeat(4,1fr);
+/* En escritorio el riel es una columna discreta en el margen derecho, con
+   los nombres escondidos hasta que el cursor pasa. En un teléfono no hay
+   margen que gastar ni cursor que pase, así que se acuesta abajo, se
+   reparte en cuatro y enseña siempre los nombres. Es el mismo marcado y
+   los mismos destinos: no se construye una barra nueva. */
+
+html[data-disp="movil"] .riel{
+  /* la hoja de escritorio esconde el riel bajo 980px (es un adorno de
+     márgenes anchos). En teléfono no se esconde: se reencarna en la barra,
+     así que hay que devolverle el display explícitamente. */
+  display:flex;
+  left:0; right:0; bottom:0; top:auto; transform:none;
+  z-index:60; flex-direction:row; align-items:stretch; gap:0;
   padding-bottom:env(safe-area-inset-bottom, 0px);
   background:rgba(231,222,203,.95);
   backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
   border-top:1px solid var(--m-linea);
 }
-html[data-disp="movil"] .m-tab{
-  display:flex; flex-direction:column; align-items:center; gap:5px;
-  padding:9px 4px 8px; background:none; border:0; cursor:pointer;
-  color:var(--m-gris); text-decoration:none;
-  font:500 9.5px var(--m-f-ui); letter-spacing:.11em; text-transform:uppercase;
+html[data-disp="movil"] .riel button{
+  flex:1; flex-direction:column; align-items:center; gap:6px;
+  padding:10px 4px 9px; color:var(--m-gris);
+  font:500 9.5px var(--m-f-ui); letter-spacing:.11em;
   -webkit-tap-highlight-color:transparent;
-  transition:color .2s;
 }
-html[data-disp="movil"] .m-tab svg{
-  width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.5;
-  stroke-linecap:round; stroke-linejoin:round;
+/* en escritorio el punto es un lunar de 7px que sólo marca posición; aquí
+   es el icono de una pestaña y necesita cuerpo */
+html[data-disp="movil"] .riel button i{
+  width:9px; height:9px;
+  border-color:var(--m-linea-fuerte);
 }
-html[data-disp="movil"] .m-tab[aria-current="true"]{ color:var(--m-tinta); }
-html[data-disp="movil"] .m-tab.m-tab--cta{ color:var(--m-coral); }
-html[data-disp="movil"] .m-tab:active{ color:var(--m-tinta); }
+html[data-disp="movil"] .riel button span{ opacity:1; }
+html[data-disp="movil"] .riel button.activo i{
+  background:var(--m-tinta); border-color:var(--m-tinta); transform:scale(1.35);
+}
+html[data-disp="movil"] .riel button.activo span{ color:var(--m-tinta); }
 
 /* con la hoja de artículos arriba, la barra estorba */
-html[data-disp="movil"] body.panel-abierto .m-tabs{
+html[data-disp="movil"] body.panel-abierto .riel{
   opacity:0; pointer-events:none; transition:opacity .2s;
 }
 
@@ -518,39 +439,39 @@ html[data-disp="movil"] body.panel-abierto .m-tabs{
    7b · la versión de teléfono no es un solo tamaño
  * ------------------------------------------------------------------ */
 
-/* Teléfono acostado: 390px de alto y la portada a pantalla completa dejaba
-   los botones fuera de cuadro. Aquí la portada deja de medir una pantalla y
-   se compacta; el ancho sobra, así que las acciones se ponen en fila. */
+/* Teléfono acostado: 390px de alto. El recorrido cabe —es scroll, no
+   maqueta— pero los bloques de texto de las capas se comen la pantalla y
+   dejan al motor sin sitio. Se achican y se pegan a los bordes. */
 @media (max-height:560px){
-  html[data-disp="movil"] .m-portada{
-    min-height:auto; gap:14px;
-    padding-top:calc(72px + env(safe-area-inset-top, 0px)); padding-bottom:26px;
-  }
-  html[data-disp="movil"] .m-palabra{ font-size:clamp(38px, 13vh, 62px); }
-  html[data-disp="movil"] .m-lema{ font-size:14.5px; }
-  html[data-disp="movil"] .m-regla{ width:44px; }
-  html[data-disp="movil"] .m-acciones{ flex-direction:row; flex-wrap:wrap; }
-  html[data-disp="movil"] .m-acciones .boton{ width:auto; }
+  html[data-disp="movil"] .capa .titulo{ font-size:clamp(21px, 5.4vh, 27px); margin-bottom:7px; }
+  html[data-disp="movil"] .capa .ceja{ margin-bottom:5px; }
+  html[data-disp="movil"] .capa .bajada{ font-size:12.5px; margin-bottom:9px; }
+  html[data-disp="movil"] .temas-bloque{ top:52px; padding:11px 13px 10px; }
+  html[data-disp="movil"] .secciones-bloque{ top:52px; }
+  html[data-disp="movil"] .hero-abajo{ flex-direction:row; align-items:flex-end; gap:18px; }
+  html[data-disp="movil"] .cierre-acciones{ flex-direction:row; }
+  html[data-disp="movil"] .cierre-acciones .boton{ width:auto; }
+  html[data-disp="movil"] .carrusel-zona{ display:none; }
+  html[data-disp="movil"] .pista{ display:none; }
 }
 
-/* Pantallas anchas que siguen siendo táctiles (tableta en vertical, teléfono
-   acostado): las mismas piezas, pero aprovechando el ancho en vez de estirar
-   dos columnas gigantes y renglones de 90 caracteres. */
+/* Pantallas anchas que siguen siendo táctiles (tableta en vertical): las
+   mismas piezas, pero aprovechando el ancho en vez de estirar renglones de
+   90 caracteres. */
 @media (min-width:600px){
   html[data-disp="movil"]{ --m-lado:34px; }
-  html[data-disp="movil"] .m-seccion,
   html[data-disp="movil"] .portal-seccion{
     max-width:760px; margin-left:auto; margin-right:auto;
   }
-  html[data-disp="movil"] .m-portada{ max-width:760px; margin:0 auto; }
-  html[data-disp="movil"] .m-temas{
-    grid-template-columns:repeat(auto-fill, minmax(178px, 1fr));
+  html[data-disp="movil"] .temas-bloque{ left:auto; width:min(430px, 46vw); }
+  html[data-disp="movil"] .secciones-bloque,
+  html[data-disp="movil"] .cierre-bloque{
+    left:50%; right:auto; width:min(680px, 88vw); transform:translateX(-50%);
   }
-  html[data-disp="movil"] .m-seccion .bajada,
   html[data-disp="movil"] .portal-intro .bajada{ max-width:62ch; }
   html[data-disp="movil"] .fila2{ grid-template-columns:1fr 1fr; }
-  html[data-disp="movil"] .m-acciones{ flex-direction:row; }
-  html[data-disp="movil"] .m-acciones .boton{ width:auto; }
+  html[data-disp="movil"] .cierre-acciones{ flex-direction:row; justify-content:center; }
+  html[data-disp="movil"] .cierre-acciones .boton{ width:auto; }
   html[data-disp="movil"] .wiz-acciones{
     flex-direction:row; justify-content:space-between; align-items:center;
   }
@@ -626,9 +547,6 @@ html[data-disp="movil"] div.cierre{
 }
 html[data-disp="movil"] div.cierre p{ max-width:none; }
 html[data-disp="movil"] div.cierre .boton{ width:100%; text-align:center; padding:16px 20px; }
-
-/* las satélites no tienen barra de pestañas: sólo la portada la monta */
-html[data-disp="movil"] body:not(:has(.m-tabs)){ padding-bottom:0; }
 
 /* equipo-ds.html no tiene barra fija: centra su tarjeta y no necesita hueco */
 html[data-disp="movil"] body:not(:has(.marco)) main:not([id]){
