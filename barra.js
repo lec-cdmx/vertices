@@ -1,9 +1,8 @@
-/* Vértices · la barra superior se esconde al subir.
+/* Vértices · la barra superior se aparta al leer.
 
-   La barra APARECE al desplazarse hacia abajo y DESAPARECE al desplazarse
-   hacia arriba. Es al revés de lo habitual, y es a propósito: arriba del todo
-   está la portada a pantalla completa y la barra le compite; en cambio,
-   avanzando hacia abajo, tener la navegación a la vista sí sirve.
+   La barra SE ESCONDE al desplazarse hacia abajo —leyendo, no la necesitas y
+   ocupa pantalla— y VUELVE al desplazarse hacia arriba, que es el gesto de
+   quien va a navegar. Arriba del todo está siempre.
 
    Vale para las tres páginas con barra y para las dos versiones: es el mismo
    componente, así que no consulta VERTICES_MOVIL. */
@@ -33,6 +32,12 @@
     pendiente = false;
     const y = Math.max(0, window.scrollY);
     const dy = y - ultimo;
+
+    /* Arriba del todo la barra siempre está: es donde se la busca. Sin esta
+       excepción, el primer tirón hacia abajo la escondería antes de que
+       nadie la hubiera visto. El margen es su propio alto. */
+    if (y <= (barra.offsetHeight || 64)) { ultimo = y; aplica(false); return; }
+
     if (Math.abs(dy) < UMBRAL) return;
     ultimo = y;
 
@@ -40,7 +45,7 @@
        se iría con todo, dejando el menú abierto a medio aire. */
     if (nav && nav.classList.contains("abierto")) { aplica(false); return; }
 
-    aplica(dy < 0);
+    aplica(dy > 0);
   }
 
   addEventListener("scroll", () => {
