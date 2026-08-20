@@ -51,6 +51,12 @@
     backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
     box-shadow:0 1px 0 rgba(45,35,46,.08);
   }
+  /* la barra entra al bajar y se va al subir; lo gobierna barra.js */
+  .marco{ transition:transform .32s cubic-bezier(.4,0,.2,1); }
+  .marco--fuera{ transform:translateY(-100%); }
+  @media (prefers-reduced-motion: reduce){
+    .marco{ transition:none; }
+  }
   .marca{ display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--tinta); }
   .emblema{ width:26px; height:26px; color:var(--tinta); }
   .marca span{ font:600 14px var(--f-ui); letter-spacing:.34em; text-transform:uppercase; transform:translateY(1px); }
@@ -727,6 +733,7 @@ document.getElementById("boletinForm").addEventListener("submit", (e) => {
 })();
 </script>
 <script src="revelar.js?v=5" defer></script>
+<script src="barra.js?v=1" defer></script>
 <script src="idiomas.js?v=5" defer></script>
 </body>
 </html>
