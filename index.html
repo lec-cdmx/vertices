@@ -616,7 +616,7 @@ text-decoration:underline;
     .menu-panel .solo-angosto{ display:block; }
   }
 </style>
-<link rel="stylesheet" href="movil.css?v=2" />
+<link rel="stylesheet" href="movil.css?v=3" />
 </head>
 <body>
 
@@ -1443,11 +1443,18 @@ const secAng = (t) => 0.16 * Math.sin(t * 0.33);
 
 let buckets = [[], [], [], []]; // indices de particulas por tinte
 
+// En teléfono la palabra y su lema suben. Centrados en la altura quedaban
+// encima del bloque institucional, de la pista de scroll y de la barra de
+// abajo, mientras arriba sobraba media pantalla. Sube la caja de la palabra y
+// el renglón del lema en la misma medida, así que no se despegan. Vale para
+// las dos pantallas donde la palabra aparece: la portada y el cierre.
+const subeMovil = () => (ES_MOVIL ? H * 0.13 : 0);
+
 function buildParticles() {
   const boxW = Math.min(W * 0.84, 1500);
   const boxH = Math.max(120, boxW * 0.30);
   const ox = (W - boxW) / 2;
-  const oy = (H - boxH) / 2;
+  const oy = (H - boxH) / 2 - subeMovil();
   const cx = W / 2, cy = H / 2;
 
   net = buildNetwork();
@@ -1867,7 +1874,7 @@ function render(tSec, u) {
     ctx.font = `700 ${layout.fontPx}px "Neue Montreal", Arial, "Helvetica Neue", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(WORD, W / 2, H / 2 + layout.fontPx * 0.03);
+    ctx.fillText(WORD, W / 2, H / 2 + layout.fontPx * 0.03 - subeMovil());
     ctx.shadowBlur = 0;
     // subtitulo en Garet, alineado a la derecha del wordmark (Manual de Identidad)
     const subPx = Math.max(13, layout.fontPx * 0.105);
@@ -1877,7 +1884,7 @@ function render(tSec, u) {
     ctx.fillStyle = "#5e5dc7";
     ctx.globalAlpha = P.textAlpha * 0.85;
     ctx.textAlign = "right";
-    ctx.fillText(SUBTITULO, W / 2 + wordW / 2, H / 2 + layout.fontPx * 0.62);
+    ctx.fillText(SUBTITULO, W / 2 + wordW / 2, H / 2 + layout.fontPx * 0.62 - subeMovil());
     if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
     ctx.textAlign = "center";
     ctx.globalAlpha = 1;
@@ -1983,10 +1990,19 @@ function pickAt(x, y) {
   return null;
 }
 
+/* Girar la constelación con el dedo.
+
+   En escritorio el arrastre mueve los dos ejes. En táctil sólo el horizontal:
+   el vertical es el scroll que gobierna el recorrido y no se le puede quitar.
+   El lienzo declara touch-action:pan-y, así que el navegador se queda con el
+   gesto vertical y nos entrega el horizontal; cuando decide quedárselo, lo
+   avisa con pointercancel y hay que soltar el arrastre ahí mismo. */
+let soloYaw = false;
+
 window.addEventListener("pointermove", (ev) => {
   if (dragging) {
     dragYaw += (ev.clientX - lastMX) * 0.005;
-    dragPitch += (ev.clientY - lastMY) * 0.004;
+    if (!soloYaw) dragPitch += (ev.clientY - lastMY) * 0.004;
     dragMoved += Math.abs(ev.clientX - lastMX) + Math.abs(ev.clientY - lastMY);
     rotIdle = 0;
   }
@@ -1997,13 +2013,21 @@ window.addEventListener("pointerout", (ev) => {
   if (!ev.relatedTarget) { mx = -1e4; my = -1e4; }
 });
 canvas.addEventListener("pointerdown", (ev) => {
-  if (ev.pointerType !== "mouse") return; // en tactil, el gesto es scroll
   dragging = true; dragMoved = 0;
+  soloYaw = ev.pointerType !== "mouse";
   lastMX = ev.clientX; lastMY = ev.clientY;
 });
-window.addEventListener("pointerup", () => { dragging = false; });
+window.addEventListener("pointerup", (ev) => {
+  dragging = false;
+  // un dedo no se queda encima de nada al levantarse: sin borrar la posición,
+  // el último nodo tocado seguiría resaltado para siempre
+  if (ev.pointerType && ev.pointerType !== "mouse") { mx = -1e4; my = -1e4; }
+});
+window.addEventListener("pointercancel", () => { dragging = false; });
 canvas.addEventListener("click", (ev) => {
-  if (dragMoved > 6) { dragMoved = 0; return; }
+  // un dedo nunca queda tan quieto como un cursor: con el umbral de 6px un
+  // toque normal se confundía con arrastre y no abría nada
+  if (dragMoved > (ES_MOVIL ? 14 : 6)) { dragMoved = 0; return; }
   const h = hover || pickAt(ev.clientX, ev.clientY);
   if (h) abrirPanel(h.tipo, h.label);
 });
@@ -2513,7 +2537,7 @@ window.__qa = {
   nav.querySelectorAll(".menu-panel a").forEach((a) => a.addEventListener("click", () => nav.classList.remove("abierto")));
 })();
 </script>
-<script src="movil.js?v=2" defer></script>
+<script src="movil.js?v=3" defer></script>
 <script src="idiomas.js?v=5" defer></script>
 </body>
 </html>
