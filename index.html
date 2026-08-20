@@ -1081,34 +1081,7 @@ const SEC_EDGES = [
 ];
 
 // corpus de muestra; sustituir por los articulos reales de la revista
-const ARTICULOS = [
-  { t: "La transmisión de la política monetaria en México después de 2021", a: "Ana Sofía Herrera", s: "Miradas Económicas", tm: ["Política Monetaria", "Banca Central", "Macroeconomía"], min: 12, dest: true },
-  { t: "Nearshoring: ¿la oportunidad que México sí puede capturar?", a: "Diego Ramírez Peña", s: "Horizonte Global", tm: ["Comercio Internacional", "Guerras Comerciales y Geoeconomía"], min: 9, dest: true },
-  { t: "Sesgos que cuestan: el ahorro juvenil visto desde la economía conductual", a: "Valeria Cantú", s: "Miradas Económicas", tm: ["Economía Conductual", "Finanzas"], min: 8 },
-  { t: "El peso en datos: 30 años de tipo de cambio en una sola gráfica", a: "Emilio Zárate", s: "Datanomics", tm: ["Ciencia de Datos", "Mercados Financieros"], min: 6, dest: true },
-  { t: "¿Sabías que el Banco de México nació en 1925?", a: "Equipo Vértices", s: "¿Sabías Qué?", tm: ["Banca Central", "Historia del Pensamiento Económico"], min: 3 },
-  { t: "Cooperar o traicionar: teoría de juegos en la OPEP", a: "Marcela Ortiz", s: "Miradas Económicas", tm: ["Teoría de Juegos", "Economía Política"], min: 10 },
-  { t: "Fintech en México: ¿inclusión financiera o espejismo digital?", a: "Rodrigo Elizondo", s: "Miradas Económicas", tm: ["Fintech", "Finanzas"], min: 11, dest: true },
-  { t: "Enseñar economía del comportamiento: conversación con la cátedra", a: "Redacción Vértices", s: "La Voz de la Experiencia", tm: ["Economía Conductual"], min: 7 },
-  { t: "Salarios mínimos y empleo juvenil: lo que dicen los microdatos", a: "Paola Gutiérrez", s: "Datanomics", tm: ["Economía Laboral", "Econometría"], min: 9 },
-  { t: "Stablecoins y remesas: el corredor México-Estados Unidos", a: "Iker Morales", s: "Miradas Económicas", tm: ["Criptomonedas y Activos Digitales", "Fintech"], min: 10 },
-  { t: "El costo de la desigualdad: movilidad social en la Ciudad de México", a: "Regina Salas", s: "Miradas Económicas", tm: ["Desigualdad y Distribución", "Economía del Desarrollo"], min: 13, dest: true },
-  { t: "El dilema eléctrico mexicano: transición energética y mercado", a: "Santiago Vela", s: "Horizonte Global", tm: ["Economía Ambiental", "Economía Pública"], min: 9 },
-  { t: "¿Sabías que en México ya se comercian derechos de emisión?", a: "Equipo Vértices", s: "¿Sabías Qué?", tm: ["Economía Ambiental"], min: 3 },
-  { t: "Precios dinámicos y poder de mercado en las plataformas de reparto", a: "Fernanda Ríos", s: "Miradas Económicas", tm: ["Economía de Plataformas", "Organización Industrial", "Microeconomía"], min: 10, dest: true },
-  { t: "IA generativa y productividad: primeras señales en firmas mexicanas", a: "Alonso Vergara", s: "Miradas Económicas", tm: ["IA y Economía", "Ciencia de Datos"], min: 11, dest: true },
-  { t: "Crónica del primer coloquio estudiantil de economía", a: "Redacción Vértices", s: "Capital Social", tm: ["Economía de Redes"], min: 5 },
-  { t: "Los tres ensayos ganadores del semestre", a: "Comité Editorial", s: "Excelencia en Acción", tm: [], min: 4 },
-  { t: "Por qué una revista de economía hecha por estudiantes", a: "Comité Editorial", s: "Apertura Editorial", tm: [], min: 4 },
-  { t: "ESG bajo la lupa: ¿los fondos sostenibles rinden menos?", a: "Camila Deloya", s: "Miradas Económicas", tm: ["Finanzas Sostenibles y ESG", "Mercados Financieros"], min: 9, dest: true },
-  { t: "El regreso de la política industrial: lecciones de Asia oriental", a: "Héctor Lomelí", s: "Horizonte Global", tm: ["Economía del Desarrollo", "Economía Institucional", "Economía Política"], min: 12 },
-  { t: "La inflación mexicana contada en 12 gráficas", a: "Equipo Datanomics", s: "Datanomics", tm: ["Macroeconomía", "Econometría"], min: 7, dest: true },
-  { t: "Mapear una guerra comercial: aranceles y redes de producción", a: "Luis Barrientos", s: "Miradas Económicas", tm: ["Economía de Redes", "Guerras Comerciales y Geoeconomía", "Comercio Internacional"], min: 11 },
-  { t: "Microcréditos y decisiones de mujeres rurales: evidencia de campo", a: "Ximena Paredes", s: "Miradas Económicas", tm: ["Economía del Desarrollo", "Microeconomía"], min: 10 },
-  { t: "De la licenciatura al banco central: una trayectoria posible", a: "Redacción Vértices", s: "La Voz de la Experiencia", tm: ["Banca Central", "Política Monetaria"], min: 8 },
-  { t: "Keynes en el siglo XXI: releer la Teoría General", a: "Mateo Iglesias", s: "Miradas Económicas", tm: ["Historia del Pensamiento Económico", "Macroeconomía"], min: 9 },
-  { t: "Impuestos saludables: la economía pública del refresco", a: "Daniela Roldán", s: "Miradas Económicas", tm: ["Economía Pública", "Microeconomía"], min: 8 },
-];
+const ARTICULOS = [];
 
 function slug(txt) {
   return txt.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
@@ -2067,28 +2040,41 @@ function artHTML(a) {
 
 function pintarPanel(filtro = "") {
   const f = norm(filtro.trim());
+
   if (panelEstado.tipo === "indice") {
     const temas = TOPICS.filter((t) => !f || norm(t).includes(f));
-    panelMeta.textContent = TR("{n} de {m} temas").replace("{n}", temas.length).replace("{m}", TOPICS.length);
+
+    panelMeta.textContent = TR("{n} de {m} temas")
+      .replace("{n}", temas.length)
+      .replace("{m}", TOPICS.length);
+
     panelLista.innerHTML = temas.map((t) => {
-      const n = articulosDe("tema", t).length;
-      return `<button class="ind" data-tema="${t}"><span>${t}</span><span class="cuenta">${n === 1 ? "1 artículo" : n + " artículos"}</span></button>`;
+      return `
+        <button class="ind" data-tema="${t}">
+          <span>${t}</span>
+          <span class="cuenta">Próximamente</span>
+        </button>
+      `;
     }).join("");
+
     return;
   }
-  let items = articulosDe(panelEstado.tipo, panelEstado.valor);
-  if (f) items = items.filter((a) => norm(a.t + " " + a.a).includes(f));
-  panelMeta.textContent = items.length === 1 ? TR("1 artículo") : TR("{n} artículos").replace("{n}", items.length);
+
+  panelMeta.textContent = "Próximamente";
+
   const regreso = panelEstado.desdeIndice
-    ? `<button class="regresa" id="regresaIndice">← Regresar al índice</button>` : "";
-  if (!items.length) {
-    panelLista.innerHTML = regreso + `<div class="vacio">
-      <p>Aún no hay artículos publicados aquí.</p>
-      <p>Sé la primera persona en escribir sobre ${panelEstado.valor}. La convocatoria está abierta y el comité editorial te acompaña en el proceso.</p>
-    </div>`;
-    return;
-  }
-  panelLista.innerHTML = regreso + items.map(artHTML).join("");
+    ? `<button class="regresa" id="regresaIndice">← Regresar al índice</button>`
+    : "";
+
+  panelLista.innerHTML = regreso + `
+    <div class="vacio">
+      <p>Próximamente disponibles</p>
+      <p>
+        Los artículos relacionados con este tema aparecerán aquí una vez que
+        la primera edición de Vértices sea publicada.
+      </p>
+    </div>
+  `;
 }
 
 function abrirPanel(tipo, valor, desdeIndice = false) {
@@ -2151,12 +2137,35 @@ document.addEventListener("click", (ev) => {
 /* ------- carrusel de articulos destacados ------- */
 
 const carrusel = document.getElementById("carrusel");
-carrusel.innerHTML = ARTICULOS.filter((a) => a.dest).map((a) => `
-  <a class="tarjeta" href="#articulo-${slug(a.t)}">
-    <span class="tarjeta-sec">${a.s}</span>
-    <h4>${a.t}</h4>
-    <p>${a.a} · ${a.min} min de lectura</p>
-  </a>`).join("");
+
+carrusel.innerHTML = `
+  <div class="tarjeta">
+    <span class="tarjeta-sec">Próximamente</span>
+    <h4>Artículos destacados en construcción</h4>
+    <p>
+      Este espacio conservará una selección de los artículos más relevantes
+      publicados en Vértices. Próximamente podrás consultarlos aquí.
+    </p>
+  </div>
+
+  <div class="tarjeta">
+    <span class="tarjeta-sec">Próximamente</span>
+    <h4>Nuevas investigaciones</h4>
+    <p>
+      Las investigaciones y trabajos destacados aparecerán en este espacio
+      una vez publicada la primera edición de la revista.
+    </p>
+  </div>
+
+  <div class="tarjeta">
+    <span class="tarjeta-sec">Próximamente</span>
+    <h4>Contenido editorial</h4>
+    <p>
+      Muy pronto encontrarás aquí entrevistas, visualizaciones de datos y
+      artículos académicos seleccionados.
+    </p>
+  </div>
+`;
 document.getElementById("cPrev").addEventListener("click", () =>
   carrusel.scrollBy({ left: -320, behavior: "smooth" }));
 document.getElementById("cSig").addEventListener("click", () =>
