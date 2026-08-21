@@ -152,10 +152,9 @@ html[data-disp="movil"] .hero-edicion{ text-align:left; }
 html[data-disp="movil"] .hero-edicion p{ margin-bottom:12px; }
 /* la pista de scroll vive a 110px del borde, que es justo donde ahora
    empieza el bloque apilado: se sube por encima de él */
-html[data-disp="movil"] .pista{
-  bottom:calc(var(--m-barra) + 150px);
-  text-align:center; /* cabe en dos renglones y el segundo se iba a la izquierda */
-}
+/* "Desplázate para explorar" sobra en un teléfono: el gesto es obvio y la
+   leyenda le quitaba aire a la portada */
+html[data-disp="movil"] .pista{ display:none; }
 
 /* --- capa 2: los 27 temas --- */
 /* la tarjeta de vidrio se queda: separa el texto de la constelación que
@@ -189,6 +188,52 @@ html[data-disp="movil"] .carrusel-zona{
   padding:0 var(--m-lado);
 }
 html[data-disp="movil"] .carrusel-cab{ margin-bottom:9px; }
+
+/* --- el cajón de destacados --- *
+   Asoma a la mitad y se saca con el dedo. La clase .m-cajon la pone movil.js:
+   sin script, el carrusel se ve entero como siempre y nada queda a medias.
+
+   touch-action:pan-x es la pieza clave del reparto de gestos: el navegador se
+   queda con el desplazamiento horizontal de las tarjetas —que sigue siendo
+   suyo— y nos entrega el vertical, que es el del cajón. */
+html[data-disp="movil"] .carrusel-zona.m-cajon{
+  pointer-events:auto;
+  touch-action:pan-x;
+}
+/* Se RECORTA, no se traslada. Trasladar el bloque hacia abajo dejaba la mitad
+   escondida colándose por los costados de la barra flotante y por debajo de
+   ella —el problema que este cajón venía a resolver—. Con max-height el corte
+   es real: lo que sobra no existe. El desvanecido evita que el corte se lea
+   como un tijeretazo. */
+html[data-disp="movil"] .carrusel-zona.m-cajon .carrusel{
+  max-height:118px; overflow-y:hidden;
+  transition:max-height .38s cubic-bezier(.32,.72,.28,1);
+  -webkit-mask-image:linear-gradient(to bottom, #000 58%, transparent 100%);
+          mask-image:linear-gradient(to bottom, #000 58%, transparent 100%);
+}
+html[data-disp="movil"] .carrusel-zona.m-cajon.abierto .carrusel{
+  max-height:340px;
+  -webkit-mask-image:none; mask-image:none;
+}
+/* mientras el dedo manda, la transición estorba: la altura la fija el gesto */
+html[data-disp="movil"] .carrusel-zona.m-cajon.arrastrando .carrusel{ transition:none; }
+@media (prefers-reduced-motion: reduce){
+  html[data-disp="movil"] .carrusel-zona.m-cajon .carrusel{ transition:none; }
+}
+
+/* el tirador: la barrita de agarre, con el blanco táctil que necesita un
+   pulgar aunque la barrita mida 4px */
+html[data-disp="movil"] .m-tirador{
+  display:block; width:100%; padding:10px 0 8px;
+  background:none; border:0; cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+html[data-disp="movil"] .m-tirador i{
+  display:block; width:40px; height:4px; margin:0 auto;
+  border-radius:99px; background:var(--m-linea-fuerte);
+  transition:background .2s, width .2s;
+}
+html[data-disp="movil"] .m-tirador:active i{ background:var(--m-tinta); width:52px; }
 html[data-disp="movil"] .flechas{ display:none; }
 html[data-disp="movil"] .carrusel{
   gap:11px; margin:0 calc(var(--m-lado) * -1); padding:0 var(--m-lado) 4px;
@@ -481,7 +526,6 @@ html[data-disp="movil"] body.panel-abierto .riel{
   html[data-disp="movil"] .cierre-acciones{ flex-direction:row; }
   html[data-disp="movil"] .cierre-acciones .boton{ width:auto; }
   html[data-disp="movil"] .carrusel-zona{ display:none; }
-  html[data-disp="movil"] .pista{ display:none; }
 }
 
 /* Pantallas anchas que siguen siendo táctiles (tableta en vertical): las
