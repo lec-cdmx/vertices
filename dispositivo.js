@@ -55,7 +55,17 @@
      caliente, se construyen desde cero. */
   window.VERTICES_CAMBIA_VISTA = (vista) => {
     try { localStorage.setItem(CLAVE, vista); } catch {}
-    location.reload();
+    /* Si la URL trae ?vista=..., al recargar ese parámetro volvería a
+       imponerse sobre lo que se acaba de guardar y el cambio no surtiría
+       efecto: quien llegó con ?vista=escritorio se quedaría en escritorio por
+       más que pidiera volver. Se quita el parámetro antes de recargar. */
+    const url = new URL(location.href);
+    if (url.searchParams.has("vista")) {
+      url.searchParams.delete("vista");
+      location.replace(url.toString());
+    } else {
+      location.reload();
+    }
   };
 
   /* Cruzar el umbral redimensionando la ventana (o abriendo el inspector)
@@ -81,4 +91,39 @@
       location.reload();
     }, 450);
   });
+
+  /* La vuelta.
+
+     Esta preferencia se recuerda, y eso convertía la elección manual en una
+     puerta de un solo sentido: la versión de teléfono ofrece "Ver versión de
+     escritorio" en el pie, y la de escritorio no ofrecía nada para volver.
+     Quien fijara escritorio en un teléfono se quedaba con la maqueta ancha
+     para siempre, sin saber que ?vista=auto existe.
+
+     El ofrecimiento aparece sólo cuando hace falta: versión de escritorio,
+     elegida a mano, y en una pantalla de teléfono. En una computadora no
+     sale, y si la de escritorio se está viendo porque toca, tampoco. */
+  function ofreceVolver() {
+    if (raiz.dataset.disp !== "escritorio") return;
+    if (forzada !== "escritorio") return;
+    if (!matchMedia("(max-width:820px)").matches) return;
+
+    const pie = document.querySelector(".pie-legal");
+    if (!pie || pie.querySelector(".vuelve-movil")) return;
+
+    const enlace = document.createElement("button");
+    enlace.type = "button";
+    enlace.className = "vuelve-movil";
+    enlace.textContent = "Ver versión para teléfono";
+    enlace.style.cssText =
+      "display:inline-block;margin-top:4px;padding:10px 0;background:none;" +
+      "border:0;cursor:pointer;font:500 11.5px inherit;letter-spacing:.14em;" +
+      "text-transform:uppercase;color:inherit;opacity:.75;" +
+      "text-decoration:underline;text-underline-offset:4px;";
+    enlace.addEventListener("click", () => window.VERTICES_CAMBIA_VISTA("movil"));
+    pie.append(enlace);
+  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", ofreceVolver)
+    : ofreceVolver();
 })();
