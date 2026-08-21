@@ -11,7 +11,7 @@
 <link rel="preload" href="fonts/NeueMontreal-Medium.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="fonts/NeueMontreal-Bold.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="fonts/Garet-Book.woff2" as="font" type="font/woff2" crossorigin />
-<script src="dispositivo.js"></script>
+<script src="dispositivo.js?v=2"></script>
 <script src="config.js"></script>
 <style>
   /* Tipografías del Manual de Identidad: Neue Montreal (logo y títulos) y Garet (subtítulos) */
@@ -200,22 +200,6 @@
     margin:0 0 12px; font:500 11px var(--f-ui);
     letter-spacing:.22em; text-transform:uppercase; color:var(--gris);
   }
-  .pista{
-    position:absolute; left:50%; bottom:110px; transform:translateX(-50%);
-    display:flex; flex-direction:column; align-items:center; gap:12px;
-    font:500 10.5px var(--f-ui); letter-spacing:.3em; text-transform:uppercase;
-    color:var(--gris);
-  }
-  .pista i{
-    width:1px; height:44px; overflow:hidden; position:relative;
-    background:rgba(45,35,46,.2);
-  }
-  .pista i::after{
-    content:""; position:absolute; left:0; top:-50%; width:1px; height:50%;
-    background:var(--crema); animation:gotea 2.1s cubic-bezier(.6,.05,.3,.95) infinite;
-  }
-  @keyframes gotea{ 0%{ top:-50%; } 100%{ top:110%; } }
-
   /* capa 2: temas */
   .temas-bloque{
     position:absolute; top:13vh; left:5vw; max-width:440px;
@@ -617,11 +601,9 @@ text-decoration:underline;
     .hero-edicion{ text-align:left; }
     .panel-envio{ padding:26px 22px; }
     .tarjeta{ flex-basis:250px; }
-    .pista{ bottom:150px; }
   }
   @media (prefers-reduced-motion: reduce){
     html{ scroll-behavior:auto; }
-    .pista i::after{ animation:none; }
   }
 
   /* menú de tres rayas: panel de vidrio con los enlaces (evita empalmes en cualquier idioma) */
@@ -659,7 +641,7 @@ text-decoration:underline;
     .menu-panel .solo-angosto{ display:block; }
   }
 </style>
-<link rel="stylesheet" href="movil.css?v=6" />
+<link rel="stylesheet" href="movil.css?v=7" />
 </head>
 <body>
 
@@ -704,7 +686,6 @@ text-decoration:underline;
 
 <!-- capa 1: hero (el lienzo dibuja la palabra al centro; aqui solo margenes) -->
 <div class="capa" id="capaHero">
-  <div class="pista" aria-hidden="true"><i></i>Desplázate para explorar</div>
   <div class="hero-abajo">
     <p class="hero-etq">
       Revista académica de economía
@@ -1460,8 +1441,8 @@ const secAng = (t) => 0.16 * Math.sin(t * 0.33);
 let buckets = [[], [], [], []]; // indices de particulas por tinte
 
 // En teléfono la palabra y su lema suben. Centrados en la altura quedaban
-// encima del bloque institucional, de la pista de scroll y de la barra de
-// abajo, mientras arriba sobraba media pantalla. Sube la caja de la palabra y
+// encima del bloque institucional y de la barra de abajo, mientras arriba
+// sobraba media pantalla. Sube la caja de la palabra y
 // el renglón del lema en la misma medida, así que no se despegan. Vale para
 // las dos pantallas donde la palabra aparece: la portada y el cierre.
 const subeMovil = () => (ES_MOVIL ? H * 0.13 : 0);

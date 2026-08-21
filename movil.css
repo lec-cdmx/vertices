@@ -150,12 +150,6 @@ html[data-disp="movil"] .hero-etq{ font-size:12px; line-height:1.6; }
 html[data-disp="movil"] .hero-etq span{ font-size:11px; }
 html[data-disp="movil"] .hero-edicion{ text-align:left; }
 html[data-disp="movil"] .hero-edicion p{ margin-bottom:12px; }
-/* la pista de scroll vive a 110px del borde, que es justo donde ahora
-   empieza el bloque apilado: se sube por encima de él */
-/* "Desplázate para explorar" sobra en un teléfono: el gesto es obvio y la
-   leyenda le quitaba aire a la portada */
-html[data-disp="movil"] .pista{ display:none; }
-
 /* --- capa 2: los 27 temas --- */
 /* la tarjeta de vidrio se queda: separa el texto de la constelación que
    late detrás, que sin ella se leería sobre los nodos */
