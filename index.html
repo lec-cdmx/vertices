@@ -44,7 +44,7 @@
   }
   *{ box-sizing:border-box; }
   html{ scroll-behavior:smooth; }
-  html,body{ margin:0; background:var(--negro); }
+  html,body{ margin:0; background:var(--negro); overflow-x:hidden; }
   body{
     font:400 15px/1.65 var(--f-ui);
     color:var(--texto);
@@ -635,10 +635,20 @@ text-decoration:underline;
 
   /* Acerca de y Conoce al equipo viven en la barra; en pantallas angostas
      regresan al panel del menú para no encimarse */
-  .menu-panel .solo-angosto{ display:none; }
+  .menu-panel .solo-angosto,
+  .menu-panel .solo-estrecho{ display:none; }
   @media (max-width:940px){
     .marco nav > .enlace-bar, .marco nav > .boton-bar{ display:none; }
     .menu-panel .solo-angosto{ display:block; }
+  }
+  /* Por debajo de esto el llamado ya no cabe en la cápsula y se salía por el
+     costado. Con la barra pegada al borde no se notaba —llegaba al filo de la
+     pantalla de todas formas—; flotando, sí. Medido: 22px de más a 380px, 2px
+     a 400px, nada de 420px en adelante; el corte va en 560 para tener margen.
+     Baja al panel del menú, donde sigue a un toque. */
+  @media (max-width:560px){
+    .marco nav > .boton--lleno{ display:none; }
+    .menu-panel .solo-estrecho{ display:block; }
   }
 </style>
 <link rel="stylesheet" href="movil.css?v=7" />
@@ -673,6 +683,7 @@ text-decoration:underline;
       <a class="enlace" href="#estado" data-ir="estado">Estado de tu envío</a>
       <a class="enlace solo-angosto" href="quienes-somos.html">Acerca de</a>
       <a class="enlace solo-angosto" href="equipo-ds.html">Conoce al equipo</a>
+      <a class="enlace solo-estrecho" href="#envio" data-ir="envio">Publica tu artículo</a>
     </div>
   </nav>
 </header>
@@ -1003,8 +1014,8 @@ text-decoration:underline;
           <h4>Contacto</h4>
           <ul>
             <li><a href="mailto:vertices@servicios.tec.mx">vertices@servicios.tec.mx</a></li>
-            <li><a href="#" rel="noopener">Instagram · @vertices.ccm</a></li>
-            <li><a href="#" rel="noopener">LinkedIn · Vértices CCM</a></li>
+            <li><a href="https://www.instagram.com/vertices.tec/" target="_blank" rel="noopener">Instagram · @vertices.tec</a></li>
+            <li><a href="https://www.linkedin.com/company/v%C3%A9rtices-revista" target="_blank" rel="noopener">LinkedIn · Vértices Revista</a></li>
           </ul>
         </div>
         <div class="boletin">
